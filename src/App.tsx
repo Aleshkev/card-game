@@ -5,8 +5,6 @@ import viteLogo from "/vite.svg";
 import { CardView } from "./components/CardView";
 import {
   Card,
-  CardColor,
-  CardValue,
   GameState,
   Item,
   randomItems,
@@ -18,131 +16,89 @@ import { RoundMetaView } from "./components/RoundMetaView";
 import { Board } from "./components/Board";
 import { diffById, shuffle, splitAt, take } from "./utilities/functional";
 import { CardGridView } from "./components/CardGridView";
+import { produce } from "immer";
 
 type Action =
-  | {
-      kind: "SelectCard";
-      card: Card;
-    }
-  | {
-      kind: "UnselectCard";
-      card: Card;
-    }
-  | {
-      kind: "GivePlayerCards";
-    }
-  | {
-      kind: "SelectDealerCards";
-    }
-  | {
-      kind: "ClearUsedCards";
-    }
+  | { kind: "SelectCard"; card: Card }
+  | { kind: "UnselectCard"; card: Card }
+  | { kind: "GivePlayerCards" }
+  | { kind: "SelectDealerCards" }
+  | { kind: "ClearUsedCards" }
   | { kind: "NextRound" }
-  | {
-      kind: "UseItem";
-      item: Item;
-    }
-  | {
-      kind: "RemoveItem";
-      item: Item;
-    }
+  | { kind: "UseItem"; item: Item }
+  | { kind: "RemoveItem"; item: Item }
   | { kind: "ShowDealersDeck" }
   | { kind: "ShowPlayerDeck" }
   | { kind: "HideDeck" };
 
 function reduce(state: GameState, action: Action): GameState {
-  switch (action.kind) {
-    case "SelectCard": {
-      if (state.round.playerHand.length >= state.roundMeta.cardsPerHand)
-        return state;
-      return {
-        ...state,
-        round: {
-          ...state.round,
-          playerHand: [...state.round.playerHand, action.card],
-        },
-      };
-    }
-    case "UnselectCard": {
-      return {
-        ...state,
-        round: {
-          ...state.round,
-          playerHand: state.round.playerHand.filter(
-            (x) => x.id !== action.card.id
-          ),
-        },
-      };
-    }
-    case "GivePlayerCards": {
-      let n = Math.max(
-        0,
-        state.roundMeta.idealCards - state.round.playerCards.length
-      );
-      let [newCards, newDeck] = splitAt(state.round.playerDeck, n);
+  return produce(state, (draft) => {
+    switch (action.kind) {
+      case "SelectCard": {
+        if (state.round.playerHand.length >= state.roundMeta.cardsPerHand)
+          return;
+        draft.round.playerHand.push(action.card);
+        return;
+      }
+      case "UnselectCard": {
+        draft.round.playerHand = diffById(draft.round.playerHand, [
+          action.card,
+        ]);
+        return;
+      }
+      case "GivePlayerCards": {
+        let n = Math.max(
+          0,
+          state.roundMeta.idealCards - state.round.playerCards.length
+        );
+        let [newCards, newDeck] = splitAt(state.round.playerDeck, n);
 
-      return {
-        ...state,
-        round: {
-          ...state.round,
-          playerCards: [...state.round.playerCards, ...newCards],
-          playerDeck: newDeck,
-        },
-      };
-    }
-    case "SelectDealerCards": {
-      let n = Math.max(
-        0,
-        state.roundMeta.cardsPerHand - state.round.dealerHand.length
-      );
-      let [newCards, newDeck] = splitAt(state.round.dealerDeck, n);
-      return {
-        ...state,
-        round: {
-          ...state.round,
-          dealerHand: [...state.round.dealerHand, ...newCards],
-          dealerDeck: newDeck,
-        },
-      };
-    }
-    case "ClearUsedCards": {
-      const playerCards = state.round.playerCards.filter(
-        (x) => state.round.playerHand.findIndex((y) => x.id === y.id) === -1
-      );
-      return {
-        ...state,
-        round: {
-          ...state.round,
-          dealerHand: [],
-          playerCards: playerCards,
-          playerHand: [],
-        },
-      };
-    }
-    case "UseItem": {
-      switch (action.item.kind) {
-        case "MagnifyingGlass": {
-          return reduce(state, { kind: "SelectDealerCards" });
-        }
-        case "Beer": {
-          return { ...state, playerLives: state.playerLives + 1 };
+        draft.round.playerCards.push(...newCards);
+        draft.round.playerDeck = newDeck;
+        return;
+      }
+      case "SelectDealerCards": {
+        let n = Math.max(
+          0,
+          state.roundMeta.cardsPerHand - state.round.dealerHand.length
+        );
+
+        let [newCards, newDeck] = splitAt(state.round.dealerDeck, n);
+        draft.round.dealerHand.push(...newCards);
+        draft.round.dealerDeck = newDeck;
+        return;
+      }
+      case "ClearUsedCards": {
+        draft.round.dealerHand = [];
+        draft.round.playerCards = diffById(
+          state.round.playerCards,
+          state.round.playerHand
+        );
+        draft.round.playerHand = [];
+        return;
+      }
+      case "UseItem": {
+        switch (action.item.kind) {
+          case "MagnifyingGlass": {
+            // TODO
+            // return reduce(state, { kind: "SelectDealerCards" });
+            return;
+          }
+          case "Beer": {
+            ++draft.playerLives;
+            return;
+          }
         }
       }
-    }
-    case "RemoveItem": {
-      return {
-        ...state,
-        round: {
-          ...state.round,
-          playerItems: diffById(state.round.playerItems, [action.item]),
-        },
-      };
-    }
-    case "NextRound": {
-      let meta = state.roundMeta;
-      return {
-        ...state,
-        round: {
+      case "RemoveItem": {
+        draft.round.playerItems = diffById(state.round.playerItems, [
+          action.item,
+        ]);
+        return;
+      }
+      case "NextRound": {
+        let meta = state.roundMeta;
+        draft.round = {
           dealerHand: [],
           dealerDeck: take(
             shuffle(standardDeck()),
@@ -155,19 +111,23 @@ function reduce(state: GameState, action: Action): GameState {
             meta.cardsPerHand * meta.hands
           ),
           playerItems: [...state.round.playerItems, ...randomItems(meta.items)],
-        },
-      };
+        };
+        return;
+      }
+      case "ShowDealersDeck": {
+        draft.showDeck = "dealer";
+        return;
+      }
+      case "ShowPlayerDeck": {
+        draft.showDeck = "player";
+        return;
+      }
+      case "HideDeck": {
+        draft.showDeck = "none";
+        return;
+      }
     }
-    case "ShowDealersDeck": {
-      return { ...state, showDeck: "dealer" };
-    }
-    case "ShowPlayerDeck": {
-      return { ...state, showDeck: "player" };
-    }
-    case "HideDeck": {
-      return { ...state, showDeck: "none" };
-    }
-  }
+  });
 }
 
 function App() {

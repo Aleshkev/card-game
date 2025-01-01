@@ -31,7 +31,13 @@ export function sortCards(cards: Card[]): Card[] {
   return r
 }
 
-// export type GameStatus = "Show"
+// export type GameStatus =
+//   "BeginRound"
+//   | "PlayerChoosesCards"
+//   | "ShowPlayersDeck"
+//   | "ShowDealersDeck"
+//   | "HandResult"
+//   | "Death"
 
 
 export type GameState = {
