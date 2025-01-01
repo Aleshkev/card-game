@@ -5,9 +5,10 @@ import viteLogo from "/vite.svg";
 import { CardView } from "./components/CardView";
 import {
   Card,
-  GameState,
   Item,
   randomItems,
+  RoundMeta,
+  RoundState,
   standardDeck,
 } from "./types/types";
 import { CardPlaceholder } from "./components/CardPlaceholder";
@@ -18,7 +19,23 @@ import { diffById, shuffle, splitAt, take } from "./utilities/functional";
 import { CardGridView } from "./components/CardGridView";
 import { produce } from "immer";
 
+type Status =
+  | "BeginRound"
+  | "PlayerChoosesCards"
+  | "ShowPlayersDeck"
+  | "ShowDealersDeck"
+  | "HandResult"
+  | "Death";
+
+type GameState = {
+  status: Status;
+  playerLives: number;
+  round: RoundState;
+  roundMeta: RoundMeta;
+};
+
 type Action =
+  | { kind: "BeginRound" }
   | { kind: "SelectCard"; card: Card }
   | { kind: "UnselectCard"; card: Card }
   | { kind: "GivePlayerCards" }
@@ -34,13 +51,30 @@ type Action =
 function reduce(state: GameState, action: Action): GameState {
   return produce(state, (draft) => {
     switch (action.kind) {
+      case "BeginRound": {
+        draft.status = "PlayerChoosesCards"
+
+        // TODO this is copy pasted
+        let n = Math.max(
+          0,
+          state.roundMeta.idealCards - state.round.playerCards.length
+        );
+        let [newCards, newDeck] = splitAt(state.round.playerDeck, n);
+
+        draft.round.playerCards.push(...newCards);
+        draft.round.playerDeck = newDeck;
+
+        return
+      }
       case "SelectCard": {
+        if (state.status !== "PlayerChoosesCards") return;
         if (state.round.playerHand.length >= state.roundMeta.cardsPerHand)
           return;
         draft.round.playerHand.push(action.card);
         return;
       }
       case "UnselectCard": {
+        if (state.status !== "PlayerChoosesCards") return;
         draft.round.playerHand = diffById(draft.round.playerHand, [
           action.card,
         ]);
@@ -115,15 +149,22 @@ function reduce(state: GameState, action: Action): GameState {
         return;
       }
       case "ShowDealersDeck": {
-        draft.showDeck = "dealer";
+        if (state.status !== "PlayerChoosesCards") return;
+        draft.status = "ShowDealersDeck";
         return;
       }
       case "ShowPlayerDeck": {
-        draft.showDeck = "player";
+        if (state.status !== "PlayerChoosesCards") return;
+        draft.status = "ShowPlayersDeck";
         return;
       }
       case "HideDeck": {
-        draft.showDeck = "none";
+        if (
+          state.status !== "ShowDealersDeck" &&
+          state.status !== "ShowPlayersDeck"
+        )
+          return;
+        draft.status = "PlayerChoosesCards";
         return;
       }
     }
@@ -132,6 +173,7 @@ function reduce(state: GameState, action: Action): GameState {
 
 function App() {
   const [state, dispatch] = useReducer(reduce, {
+    status: "BeginRound",
     playerLives: 3,
     roundMeta: {
       cardsPerHand: 3,
@@ -147,10 +189,7 @@ function App() {
       playerDeck: take(shuffle(standardDeck()), 12),
       playerItems: randomItems(2),
     },
-    showDeck: "none",
   });
-
-  useEffect(() => dispatch({ kind: "GivePlayerCards" }), []);
 
   return (
     <div className="flex flex-row items-center min-h-[100vh] font-serif">
@@ -189,19 +228,32 @@ function App() {
             onShowPlayerDeck={() => dispatch({ kind: "ShowPlayerDeck" })}
           />
         </div>
-        {state.showDeck !== "none" && (
+        {(state.status === "ShowDealersDeck" ||
+          state.status === "ShowPlayersDeck") && (
           <div
-            className=" absolute w-full h-full top-0"
+            className=" absolute w-full h-full top-0 backdrop-blur"
             onClick={() => dispatch({ kind: "HideDeck" })}
           >
             <CardGridView
               cards={
-                state.showDeck === "dealer"
+                state.status === "ShowDealersDeck"
                   ? state.round.dealerDeck
                   : state.round.playerDeck
               }
-              onDismiss={() => dispatch({ kind: "HideDeck" })}
             />
+          </div>
+        )}
+        {state.status === "BeginRound" && (
+          <div
+            className="absolute w-full h-full top-0 backdrop-blur flex flex-col gap-2"
+            onClick={() => dispatch({ kind: "BeginRound" })}
+          >
+            <p>
+              Dealer's cards:
+            </p>
+            <CardGridView cards={state.round.dealerDeck}/>
+            <p>Your cards:</p>
+            <CardGridView cards={state.round.playerDeck}/>
           </div>
         )}
       </div>

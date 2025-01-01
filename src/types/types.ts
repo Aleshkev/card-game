@@ -31,21 +31,8 @@ export function sortCards(cards: Card[]): Card[] {
   return r
 }
 
-// export type GameStatus =
-//   "BeginRound"
-//   | "PlayerChoosesCards"
-//   | "ShowPlayersDeck"
-//   | "ShowDealersDeck"
-//   | "HandResult"
-//   | "Death"
 
 
-export type GameState = {
-  playerLives: number
-  round: RoundState
-  roundMeta: RoundMeta
-  showDeck: "dealer" | "player" | "none"
-}
 
 export type RoundMeta = {
   cardsPerHand: number
