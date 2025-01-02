@@ -1,9 +1,7 @@
 import { Card, getScore, Item, RoundMeta, RoundState } from "../types/types";
 import { CardArrayView } from "./CardArrayView";
 import { CardStack } from "./CardStack";
-import { CardView } from "./CardView";
 import { ItemArrayView } from "./ItemArrayView";
-import { ItemView } from "./ItemView";
 
 export type Props = {
   roundMeta: RoundMeta;
@@ -69,7 +67,7 @@ export function Board({
   );
 
   return (
-    <div className=" h-full justify-center flex flex-col gap-20 items-stretch p-2 max-w-[70em]">
+    <div className=" h-full justify-center flex flex-col gap-20 items-stretch p-2">
       <div className="relative">
         <div className="  mx-auto flex gap-2 items-center justify-center">
           {dealerHand}

@@ -1,6 +1,7 @@
 import { useReducer } from "react";
 import {
   Card,
+  getScore,
   Item,
   randomItems,
   RoundMeta,
@@ -86,7 +87,19 @@ function reduce(state: GameState, action: Action): GameState {
       }
       case "ShowResult": {
         if (state.status !== "SelectingDealersCards") return;
-        draft.status = "ShowingHandResult";
+
+        let playerScore = getScore(state.round.playerHand);
+        let dealerScore = getScore(state.round.dealerHand);
+
+        if (playerScore < dealerScore) {
+          --draft.playerLives;
+        }
+
+        if (draft.playerLives === 0) {
+          draft.status = "Death";
+        } else {
+          draft.status = "ShowingHandResult";
+        }
         return;
       }
       case "ClearUsedCards": {
@@ -173,7 +186,9 @@ function App() {
         />
       </div>
       <div className="grow relative">
-        <div className=" h-full">
+        <div
+          className={` h-full ${state.status === "Death" ? " bg-red-300" : ""}`}
+        >
           <Board
             roundMeta={state.roundMeta}
             roundState={state.round}
@@ -229,6 +244,9 @@ function App() {
             onClick={() => dispatch({ kind: "NextRound" })}
             label="No cards left. New round will begin. Click to continue."
           />
+        )}
+        {state.status === "Death" && (
+          <Popup onDismiss={() => {}}><p>You are dead.</p></Popup>
         )}
       </div>
     </div>
