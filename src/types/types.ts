@@ -31,9 +31,6 @@ export function sortCards(cards: Card[]): Card[] {
   return r
 }
 
-
-
-
 export type RoundMeta = {
   cardsPerHand: number
   idealCards: number
@@ -42,10 +39,7 @@ export type RoundMeta = {
 }
 
 export type ItemId = number & { _: "ItemId" }
-let nextItemId = 0
-export function newItemId() {
-  return (nextItemId++) as ItemId
-}
+export const newItemId = () => newId() as ItemId
 export type Item = {
   kind: "MagnifyingGlass" | "Beer"
   id: ItemId
@@ -80,20 +74,7 @@ export function randomItems(n: number): Item[] {
   return items
 }
 
-
-// export function getScore(hand: Card[]) {
-//   return hand.reduce((a, b) => a * (b.kind === "Joker" ? 20 : b.value), 1);
-// }
-
-// export function getWinner(left: Card[], right: Card[]): "Left" | "Right" | "Draw" {
-//   // TODO: Poker hands
-//   let leftScore = getScore(left), rightScore = getScore(right)
-//   return leftScore === rightScore ? "Draw" : leftScore < rightScore ? "Left" : "Right"
-// }
-
-
 export function getScore(cards: Card[]): number {
-
   const recognised: string[] = []
   const scores = []
 

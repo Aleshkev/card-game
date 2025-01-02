@@ -1,8 +1,4 @@
-import { useEffect, useReducer, useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-// import './App.css'
-import { CardView } from "./components/CardView";
+import { useReducer } from "react";
 import {
   Card,
   Item,
@@ -11,21 +7,17 @@ import {
   RoundState,
   standardDeck,
 } from "./types/types";
-import { CardPlaceholder } from "./components/CardPlaceholder";
-import { CardStack } from "./components/CardStack";
 import { RoundMetaView } from "./components/RoundMetaView";
 import { Board } from "./components/Board";
-import { diffById, shuffle, splitAt, take } from "./utilities/functional";
+import { diffById, shuffle, take } from "./utilities/functional";
 import { CardGridView } from "./components/CardGridView";
 import { produce } from "immer";
-
-type Status =
-  | "BeginRound"
-  | "PlayerChoosesCards"
-  | "ShowPlayersDeck"
-  | "ShowDealersDeck"
-  | "HandResult"
-  | "Death";
+import {
+  discardPlayedCards,
+  giveDealerCards,
+  givePlayerCards,
+  newRound,
+} from "./types/logic";
 
 type GameState = {
   status: Status;
@@ -34,12 +26,23 @@ type GameState = {
   roundMeta: RoundMeta;
 };
 
+type Status =
+  | "BeginRound"
+  | "PlayerChoosesCards"
+  | "ShowPlayersDeck"
+  | "ShowDealersDeck"
+  | "SelectingDealersCards"
+  | "ShowingHandResult"
+  | "RoundEnded"
+  | "Death";
+
 type Action =
   | { kind: "BeginRound" }
   | { kind: "SelectCard"; card: Card }
   | { kind: "UnselectCard"; card: Card }
-  | { kind: "GivePlayerCards" }
+  | { kind: "" }
   | { kind: "SelectDealerCards" }
+  | { kind: "ShowResult" }
   | { kind: "ClearUsedCards" }
   | { kind: "NextRound" }
   | { kind: "UseItem"; item: Item }
@@ -52,19 +55,9 @@ function reduce(state: GameState, action: Action): GameState {
   return produce(state, (draft) => {
     switch (action.kind) {
       case "BeginRound": {
-        draft.status = "PlayerChoosesCards"
-
-        // TODO this is copy pasted
-        let n = Math.max(
-          0,
-          state.roundMeta.idealCards - state.round.playerCards.length
-        );
-        let [newCards, newDeck] = splitAt(state.round.playerDeck, n);
-
-        draft.round.playerCards.push(...newCards);
-        draft.round.playerDeck = newDeck;
-
-        return
+        draft.round = givePlayerCards(state.round, state.roundMeta.idealCards);
+        draft.status = "PlayerChoosesCards";
+        return;
       }
       case "SelectCard": {
         if (state.status !== "PlayerChoosesCards") return;
@@ -80,35 +73,28 @@ function reduce(state: GameState, action: Action): GameState {
         ]);
         return;
       }
-      case "GivePlayerCards": {
-        let n = Math.max(
-          0,
-          state.roundMeta.idealCards - state.round.playerCards.length
+      case "SelectDealerCards": {
+        if (state.status !== "PlayerChoosesCards") return;
+        draft.round = giveDealerCards(
+          state.round,
+          state.roundMeta.cardsPerHand
         );
-        let [newCards, newDeck] = splitAt(state.round.playerDeck, n);
-
-        draft.round.playerCards.push(...newCards);
-        draft.round.playerDeck = newDeck;
+        draft.status = "SelectingDealersCards";
         return;
       }
-      case "SelectDealerCards": {
-        let n = Math.max(
-          0,
-          state.roundMeta.cardsPerHand - state.round.dealerHand.length
-        );
-
-        let [newCards, newDeck] = splitAt(state.round.dealerDeck, n);
-        draft.round.dealerHand.push(...newCards);
-        draft.round.dealerDeck = newDeck;
+      case "ShowResult": {
+        if (state.status !== "SelectingDealersCards") return;
+        draft.status = "ShowingHandResult";
         return;
       }
       case "ClearUsedCards": {
-        draft.round.dealerHand = [];
-        draft.round.playerCards = diffById(
-          state.round.playerCards,
-          state.round.playerHand
-        );
-        draft.round.playerHand = [];
+        draft.round = discardPlayedCards(draft.round);
+        draft.round = givePlayerCards(draft.round, state.roundMeta.idealCards);
+        if (draft.round.dealerDeck.length === 0) {
+          draft.status = "RoundEnded";
+        } else {
+          draft.status = "PlayerChoosesCards";
+        }
         return;
       }
       case "UseItem": {
@@ -125,27 +111,11 @@ function reduce(state: GameState, action: Action): GameState {
         }
       }
       case "RemoveItem": {
-        draft.round.playerItems = diffById(state.round.playerItems, [
-          action.item,
-        ]);
         return;
       }
       case "NextRound": {
-        let meta = state.roundMeta;
-        draft.round = {
-          dealerHand: [],
-          dealerDeck: take(
-            shuffle(standardDeck()),
-            meta.cardsPerHand * meta.hands
-          ),
-          playerCards: [],
-          playerHand: [],
-          playerDeck: take(
-            shuffle(standardDeck()),
-            meta.cardsPerHand * meta.hands
-          ),
-          playerItems: [...state.round.playerItems, ...randomItems(meta.items)],
-        };
+        draft.round = newRound(state.roundMeta, state.round);
+        draft.status = "BeginRound";
         return;
       }
       case "ShowDealersDeck": {
@@ -194,6 +164,7 @@ function App() {
   return (
     <div className="flex flex-row items-center min-h-[100vh] font-serif">
       <div className="">
+        {state.status}
         <RoundMetaView
           roundMeta={state.roundMeta}
           playerLives={state.playerLives}
@@ -212,11 +183,6 @@ function App() {
             }}
             onPlayerSubmit={() => {
               dispatch({ kind: "SelectDealerCards" });
-
-              setTimeout(() => {
-                dispatch({ kind: "ClearUsedCards" });
-                dispatch({ kind: "GivePlayerCards" });
-              }, 1000);
             }}
             onUseItem={(item) => {
               dispatch({ kind: "RemoveItem", item });
@@ -226,6 +192,7 @@ function App() {
             }}
             onShowDealerDeck={() => dispatch({ kind: "ShowDealersDeck" })}
             onShowPlayerDeck={() => dispatch({ kind: "ShowPlayerDeck" })}
+            showResult={state.status === "ShowingHandResult"}
           />
         </div>
         {(state.status === "ShowDealersDeck" ||
@@ -248,12 +215,34 @@ function App() {
             className="absolute w-full h-full top-0 backdrop-blur flex flex-col gap-2"
             onClick={() => dispatch({ kind: "BeginRound" })}
           >
-            <p>
-              Dealer's cards:
-            </p>
-            <CardGridView cards={state.round.dealerDeck}/>
+            <p>Dealer's cards:</p>
+            <CardGridView cards={state.round.dealerDeck} />
             <p>Your cards:</p>
-            <CardGridView cards={state.round.playerDeck}/>
+            <CardGridView cards={state.round.playerDeck} />
+          </div>
+        )}
+        {state.status === "SelectingDealersCards" && (
+          <div
+            className="absolute w-full h-full top-0 flex flex-col gap-2"
+            onClick={() => dispatch({ kind: "ShowResult" })}
+          >
+            Click to continue
+          </div>
+        )}
+        {state.status === "ShowingHandResult" && (
+          <div
+            className="absolute w-full h-full top-0 flex flex-col gap-2"
+            onClick={() => dispatch({ kind: "ClearUsedCards" })}
+          >
+            Click to continue
+          </div>
+        )}
+        {state.status === "RoundEnded" && (
+          <div
+            className="absolute w-full h-full top-0 flex flex-col gap-2"
+            onClick={() => dispatch({ kind: "NextRound" })}
+          >
+            No cards left. New round will begin. Click to continue.
           </div>
         )}
       </div>

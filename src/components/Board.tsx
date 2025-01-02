@@ -15,6 +15,7 @@ export type Props = {
   onShowDealerDeck: () => void;
   onShowPlayerDeck: () => void;
   onUseItem: (item: Item) => void;
+  showResult: boolean;
 };
 
 export function Board({
@@ -26,6 +27,7 @@ export function Board({
   onShowDealerDeck,
   onShowPlayerDeck,
   onUseItem,
+  showResult,
 }: Props) {
   const dealerHand = (
     <CardArrayView
@@ -33,7 +35,12 @@ export function Board({
       placeholders={roundMeta.cardsPerHand}
     />
   );
-  const dealerDeck = <CardStack nCards={roundState.dealerDeck.length} onClick={onShowDealerDeck} />;
+  const dealerDeck = (
+    <CardStack
+      nCards={roundState.dealerDeck.length}
+      onClick={onShowDealerDeck}
+    />
+  );
   const playerHand = (
     <CardArrayView
       cards={roundState.playerHand}
@@ -52,28 +59,31 @@ export function Board({
       onClickCard={onPlayerSelectCard}
     />
   );
-  const playerDeck = <CardStack nCards={roundState.playerDeck.length} onClick={onShowPlayerDeck} />;
+  const playerDeck = (
+    <CardStack
+      nCards={roundState.playerDeck.length}
+      onClick={onShowPlayerDeck}
+    />
+  );
 
   return (
     <div className="flex flex-col gap-20 items-stretch p-2 max-w-[70em]">
       <div className="relative">
         <div className="  mx-auto flex gap-2 items-center justify-center">
           {dealerHand}
-          {roundState.dealerHand.length >= roundMeta.cardsPerHand && (
-            <div>Score: {getScore(roundState.dealerHand)}</div>
-          )}
+          {showResult && <div>Score: {getScore(roundState.dealerHand)}</div>}
         </div>
         <div className="absolute right-0 top-0">{dealerDeck}</div>
       </div>
       <div>
         <div className="flex justify-center gap-2 items-center">
           {playerHand}
-          {roundState.playerHand.length >= 1 && [
-            <div>Score: {getScore(roundState.playerHand)}</div>,
+          {showResult && <div>Score: {getScore(roundState.playerHand)}</div>}
+          {roundState.playerHand.length >= 1 && (
             <div onClick={onPlayerSubmit} className="underline cursor-pointer">
               Play
-            </div>,
-          ]}
+            </div>
+          )}
         </div>
       </div>
       <div className=" relative">
