@@ -18,6 +18,8 @@ import {
   givePlayerCards,
   newRound,
 } from "./types/logic";
+import { Popup } from "./components/Popup";
+import { ClickScreen } from "./components/ClickScreen";
 
 type GameState = {
   status: Status;
@@ -162,7 +164,7 @@ function App() {
   });
 
   return (
-    <div className="flex flex-row items-center min-h-[100vh] font-serif">
+    <div className="flex flex-row  items-stretch min-h-[100vh] font-serif">
       <div className="">
         {state.status}
         <RoundMetaView
@@ -171,7 +173,7 @@ function App() {
         />
       </div>
       <div className="grow relative">
-        <div className="">
+        <div className=" h-full">
           <Board
             roundMeta={state.roundMeta}
             roundState={state.round}
@@ -193,14 +195,12 @@ function App() {
             onShowDealerDeck={() => dispatch({ kind: "ShowDealersDeck" })}
             onShowPlayerDeck={() => dispatch({ kind: "ShowPlayerDeck" })}
             showResult={state.status === "ShowingHandResult"}
+            allowSubmit={state.status === "PlayerChoosesCards"}
           />
         </div>
         {(state.status === "ShowDealersDeck" ||
           state.status === "ShowPlayersDeck") && (
-          <div
-            className=" absolute w-full h-full top-0 backdrop-blur"
-            onClick={() => dispatch({ kind: "HideDeck" })}
-          >
+          <Popup onDismiss={() => dispatch({ kind: "HideDeck" })}>
             <CardGridView
               cards={
                 state.status === "ShowDealersDeck"
@@ -208,42 +208,27 @@ function App() {
                   : state.round.playerDeck
               }
             />
-          </div>
+          </Popup>
         )}
         {state.status === "BeginRound" && (
-          <div
-            className="absolute w-full h-full top-0 backdrop-blur flex flex-col gap-2"
-            onClick={() => dispatch({ kind: "BeginRound" })}
-          >
+          <Popup onDismiss={() => dispatch({ kind: "BeginRound" })}>
             <p>Dealer's cards:</p>
             <CardGridView cards={state.round.dealerDeck} />
             <p>Your cards:</p>
             <CardGridView cards={state.round.playerDeck} />
-          </div>
+          </Popup>
         )}
         {state.status === "SelectingDealersCards" && (
-          <div
-            className="absolute w-full h-full top-0 flex flex-col gap-2"
-            onClick={() => dispatch({ kind: "ShowResult" })}
-          >
-            Click to continue
-          </div>
+          <ClickScreen onClick={() => dispatch({ kind: "ShowResult" })} />
         )}
         {state.status === "ShowingHandResult" && (
-          <div
-            className="absolute w-full h-full top-0 flex flex-col gap-2"
-            onClick={() => dispatch({ kind: "ClearUsedCards" })}
-          >
-            Click to continue
-          </div>
+          <ClickScreen onClick={() => dispatch({ kind: "ClearUsedCards" })} />
         )}
         {state.status === "RoundEnded" && (
-          <div
-            className="absolute w-full h-full top-0 flex flex-col gap-2"
+          <ClickScreen
             onClick={() => dispatch({ kind: "NextRound" })}
-          >
-            No cards left. New round will begin. Click to continue.
-          </div>
+            label="No cards left. New round will begin. Click to continue."
+          />
         )}
       </div>
     </div>

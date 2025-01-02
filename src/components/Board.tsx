@@ -11,6 +11,7 @@ export type Props = {
 
   onPlayerSelectCard: (card: Card) => void;
   onPlayerUnselectCard: (card: Card) => void;
+  allowSubmit: boolean
   onPlayerSubmit: () => void;
   onShowDealerDeck: () => void;
   onShowPlayerDeck: () => void;
@@ -24,6 +25,7 @@ export function Board({
   onPlayerSelectCard,
   onPlayerUnselectCard,
   onPlayerSubmit,
+  allowSubmit,
   onShowDealerDeck,
   onShowPlayerDeck,
   onUseItem,
@@ -67,7 +69,7 @@ export function Board({
   );
 
   return (
-    <div className="flex flex-col gap-20 items-stretch p-2 max-w-[70em]">
+    <div className=" h-full justify-center flex flex-col gap-20 items-stretch p-2 max-w-[70em]">
       <div className="relative">
         <div className="  mx-auto flex gap-2 items-center justify-center">
           {dealerHand}
@@ -76,18 +78,18 @@ export function Board({
         <div className="absolute right-0 top-0">{dealerDeck}</div>
       </div>
       <div>
-        <div className="flex justify-center gap-2 items-center">
+        <div className="flex flex-col justify-center gap-2 items-center">
           {playerHand}
-          {showResult && <div>Score: {getScore(roundState.playerHand)}</div>}
-          {roundState.playerHand.length >= 1 && (
+          {showResult && <div>Score: {getScore(roundState.playerHand)}</div> || <div>&nbsp;</div>}
+          {(roundState.playerHand.length >= 1 && allowSubmit) && (
             <div onClick={onPlayerSubmit} className="underline cursor-pointer">
               Play
             </div>
-          )}
+          )|| <div>&nbsp;</div>}
         </div>
       </div>
       <div className=" relative">
-        <div className=" absolute left-0 top-0">{playerItems}</div>
+        {/* <div className=" absolute left-0 top-0">{playerItems}</div> */}
         <div className=" mx-auto">{playerCards}</div>
         <div className=" absolute right-0 top-0">{playerDeck}</div>
       </div>
