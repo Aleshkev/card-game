@@ -9,11 +9,3 @@ export type RoundState = {
   dealerPlayedCards: Card[]
   dealerDeck: Card[]
 }
-
-export type RoundMeta = {
-  maxDealerHandSize: number
-  maxPlayerHandSize: number
-  idealNDrawnCards: number
-  idealNPlays: number
-  items: number
-}

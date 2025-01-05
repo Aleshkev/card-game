@@ -1,14 +1,14 @@
 import { Card } from "../types/card";
 import { compareHands, getBestHand, handToString } from "../types/hand";
 import { Item } from "../types/item";
-import { RoundMeta, RoundState } from "../types/round";
-import {} from "../types/types";
+import { RoundState } from "../types/roundState";
+import { RoundConditions } from "../types/roundConditions";
 import { CardArrayView } from "./CardArrayView";
 import { CardStack } from "./CardStack";
 import { ItemArrayView } from "./ItemArrayView";
 
 export type Props = {
-  roundMeta: RoundMeta;
+  roundConditions: RoundConditions;
   roundState: RoundState;
 
   onPlayerSelectCard: (card: Card) => void;
@@ -22,7 +22,7 @@ export type Props = {
 };
 
 export function Board({
-  roundMeta,
+  roundConditions,
   roundState,
   onPlayerSelectCard,
   onPlayerUnselectCard,
@@ -40,7 +40,7 @@ export function Board({
   const dealerPlayedCards = (
     <CardArrayView
       cards={roundState.dealerPlayedCards}
-      placeholders={roundMeta.maxDealerHandSize}
+      placeholders={roundConditions.maxDealerHandSize}
       highlighted={
         dealerBestHand ? dealerBestHand.cards.map(({ id }) => id) : undefined
       }
@@ -55,7 +55,7 @@ export function Board({
   const playerPlayedCards = (
     <CardArrayView
       cards={roundState.playerPlayedCards}
-      placeholders={roundMeta.maxPlayerHandSize}
+      placeholders={roundConditions.maxPlayerHandSize}
       onClickCard={onPlayerUnselectCard}
       highlighted={
         playerBestHand ? playerBestHand.cards.map(({ id }) => id) : undefined

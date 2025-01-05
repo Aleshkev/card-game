@@ -1,10 +1,8 @@
 import { Card } from "../types/card";
-import {  } from "../types/types";
-
 export type Props = {
   card: Card;
   onClick?: () => void;
-  highlighted?: boolean
+  highlighted?: boolean;
 };
 
 export function CardView({ card, onClick, highlighted }: Props) {

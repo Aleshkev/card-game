@@ -1,5 +1,4 @@
 import { useReducer } from "react";
-import {} from "./types/types";
 import { RoundMetaView } from "./components/RoundMetaView";
 import { Board } from "./components/Board";
 import { diffById, shuffle, take } from "./utilities/functional";
@@ -15,14 +14,15 @@ import { Popup } from "./components/Popup";
 import { ClickScreen } from "./components/ClickScreen";
 import { Card, standardDeck } from "./types/card";
 import { Item, randomItems } from "./types/item";
-import { RoundState, RoundMeta } from "./types/round";
+import { RoundState } from "./types/roundState";
 import { compareHands, getBestHand } from "./types/hand";
+import { randomRoundConditions, RoundConditions } from "./types/roundConditions";
 
 type GameState = {
   status: Status;
   playerLives: number;
   round: RoundState;
-  roundMeta: RoundMeta;
+  roundConditions: RoundConditions;
 };
 
 type Status =
@@ -54,29 +54,36 @@ function reduce(state: GameState, action: Action): GameState {
   return produce(state, (draft) => {
     switch (action.kind) {
       case "BeginRound": {
-        draft.round = givePlayerCards(state.round, state.roundMeta.idealNDrawnCards);
+        draft.round = givePlayerCards(
+          state.round,
+          state.roundConditions.idealNDrawnCards
+        );
         draft.status = "PlayerChoosesCards";
         return;
       }
       case "SelectCard": {
         if (state.status !== "PlayerChoosesCards") return;
-        if (state.round.playerPlayedCards.length >= state.roundMeta.maxPlayerHandSize)
+        if (
+          state.round.playerPlayedCards.length >=
+          state.roundConditions.maxPlayerHandSize
+        )
           return;
         draft.round.playerPlayedCards.push(action.card);
         return;
       }
       case "UnselectCard": {
         if (state.status !== "PlayerChoosesCards") return;
-        draft.round.playerPlayedCards = diffById(draft.round.playerPlayedCards, [
-          action.card,
-        ]);
+        draft.round.playerPlayedCards = diffById(
+          draft.round.playerPlayedCards,
+          [action.card]
+        );
         return;
       }
       case "SelectDealerCards": {
         if (state.status !== "PlayerChoosesCards") return;
         draft.round = giveDealerCards(
           state.round,
-          state.roundMeta.maxDealerHandSize
+          state.roundConditions.maxDealerHandSize
         );
         draft.status = "SelectingDealersCards";
         return;
@@ -102,7 +109,10 @@ function reduce(state: GameState, action: Action): GameState {
       }
       case "ClearUsedCards": {
         draft.round = discardPlayedCards(draft.round);
-        draft.round = givePlayerCards(draft.round, state.roundMeta.idealNDrawnCards);
+        draft.round = givePlayerCards(
+          draft.round,
+          state.roundConditions.idealNDrawnCards
+        );
         if (draft.round.dealerDeck.length === 0) {
           draft.status = "RoundEnded";
         } else {
@@ -127,7 +137,7 @@ function reduce(state: GameState, action: Action): GameState {
         return;
       }
       case "NextRound": {
-        draft.round = newRound(state.roundMeta, state.round);
+        draft.round = newRound(state.roundConditions, state.round);
         draft.status = "BeginRound";
         return;
       }
@@ -155,36 +165,29 @@ function reduce(state: GameState, action: Action): GameState {
 }
 
 function App() {
-  const initialRoundMeta: RoundMeta = {
-    maxDealerHandSize: 4,
-    maxPlayerHandSize: 3,
-    idealNDrawnCards: 6,
-    idealNPlays: 5,
-    items: 3,
-
-  }
+  const initialRoundMeta = randomRoundConditions(0);
   const [state, dispatch] = useReducer(reduce, {
     status: "BeginRound",
     playerLives: 3,
-    roundMeta: initialRoundMeta,
+    roundConditions: initialRoundMeta,
     round: newRound(initialRoundMeta),
   });
 
   return (
-    <div className="flex flex-row  items-stretch min-h-[100vh] font-serif">
+    <div
+      className={`flex flex-row  items-stretch min-h-[100vh] font-serif ${state.status === "Death" ? " bg-red-300" : ""}`}
+    >
       <div className="">
         {state.status}
         <RoundMetaView
-          roundMeta={state.roundMeta}
+          roundConditions={state.roundConditions}
           playerLives={state.playerLives}
         />
       </div>
       <div className="grow relative">
-        <div
-          className={` h-full ${state.status === "Death" ? " bg-red-300" : ""}`}
-        >
+        <div className={` h-full `}>
           <Board
-            roundMeta={state.roundMeta}
+            roundConditions={state.roundConditions}
             roundState={state.round}
             onPlayerSelectCard={(card) =>
               dispatch({ kind: "SelectCard", card })
@@ -203,7 +206,9 @@ function App() {
             }}
             onShowDealerDeck={() => dispatch({ kind: "ShowDealersDeck" })}
             onShowPlayerDeck={() => dispatch({ kind: "ShowPlayerDeck" })}
-            showResult={state.status === "ShowingHandResult" || state.status === "Death"}
+            showResult={
+              state.status === "ShowingHandResult" || state.status === "Death"
+            }
             allowSubmit={state.status === "PlayerChoosesCards"}
           />
         </div>

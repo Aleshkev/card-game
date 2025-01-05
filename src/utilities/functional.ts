@@ -24,6 +24,11 @@ export function shuffle<T>(xs: T[]): T[] {
   return xs_
 }
 
+/** Sort a list. */
+export function sort<T>(xs: T[], compare: (a: T, b: T) => number): T[] {
+  return xs.slice().sort(compare)
+}
+
 /** Returns elements in `xs` and not in `ys`, using `eq` to check equality. O(nm). */
 export function diff<TX, TY>(xs: TX[], ys: TY[], eq: (x: TX, y: TY) => boolean): TX[] {
   return xs.filter(x => ys.every(y => !eq(x, y)))

@@ -1,16 +1,16 @@
 import { produce } from "immer";
-import {    } from "./types";
 import { diffById, shuffle, splitAt, take } from "../utilities/functional";
 import { Card, standardDeck, minCardRank, maxCardRank, minCardSuit, maxCardSuit } from "./card";
 import { randomItems, Item } from "./item";
-import { RoundMeta, RoundState } from "./round";
+import { RoundState } from "./roundState";
+import { RoundConditions } from "./roundConditions";
 
 function transferCards(target: Card[], source: Card[], n: number): [Card[], Card[]] {
   let [transferredCards, newSource] = splitAt(source, n)
   return [[...target, ...transferredCards], newSource]
 }
 
-export function newRound(meta: RoundMeta, previousRound?: RoundState): RoundState {
+export function newRound(meta: RoundConditions, previousRound?: RoundState): RoundState {
   let n = meta.maxDealerHandSize * meta.idealNPlays
   let [dealerDeck, rest] = splitAt(shuffle(standardDeck()), n)
   let playerDeck = take(rest, meta.maxPlayerHandSize * meta.idealNPlays)
