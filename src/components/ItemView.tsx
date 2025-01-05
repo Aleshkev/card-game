@@ -1,4 +1,4 @@
-import { Item } from "../types/types";
+import { Item } from "../types/item";
 
 export type Props = {
   item: Item;

@@ -1,4 +1,4 @@
-import { RoundMeta } from "../types/types"
+import { RoundMeta } from "../types/round"
 
 export type Props = {
   roundMeta: RoundMeta

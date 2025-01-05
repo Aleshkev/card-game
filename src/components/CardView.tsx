@@ -1,4 +1,5 @@
-import { Card } from "../types/types";
+import { Card } from "../types/card";
+import {  } from "../types/types";
 
 export type Props = {
   card: Card;
@@ -6,7 +7,7 @@ export type Props = {
 };
 
 export function CardView({ card, onClick }: Props) {
-  const text = "" + card.value;
+  const text = "" + card.rank;
   const color = card.color <= 2 ? "#dc2626" : "#262626";
   const suit = "_♥♦♠♣"[card.color];
 

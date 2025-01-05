@@ -1,4 +1,4 @@
-import { Card } from "../types/types";
+import { Card } from "../types/card";
 import { CardPlaceholder } from "./CardPlaceholder";
 import { CardView } from "./CardView";
 

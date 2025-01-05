@@ -1,13 +1,5 @@
 import { useReducer } from "react";
-import {
-  Card,
-  getScore,
-  Item,
-  randomItems,
-  RoundMeta,
-  RoundState,
-  standardDeck,
-} from "./types/types";
+import {} from "./types/types";
 import { RoundMetaView } from "./components/RoundMetaView";
 import { Board } from "./components/Board";
 import { diffById, shuffle, take } from "./utilities/functional";
@@ -21,6 +13,10 @@ import {
 } from "./types/logic";
 import { Popup } from "./components/Popup";
 import { ClickScreen } from "./components/ClickScreen";
+import { Card, standardDeck } from "./types/card";
+import { Item, randomItems } from "./types/item";
+import { RoundState, RoundMeta } from "./types/round";
+import { compareHands, getBestHand } from "./types/hand";
 
 type GameState = {
   status: Status;
@@ -88,10 +84,12 @@ function reduce(state: GameState, action: Action): GameState {
       case "ShowResult": {
         if (state.status !== "SelectingDealersCards") return;
 
-        let playerScore = getScore(state.round.playerHand);
-        let dealerScore = getScore(state.round.dealerHand);
-
-        if (playerScore < dealerScore) {
+        let playerBestHand = getBestHand(state.round.playerHand);
+        let dealerBestHand = getBestHand(state.round.dealerHand);
+        let cmp = compareHands(playerBestHand, dealerBestHand);
+        if (cmp >= 0) {
+          // Player wins
+        } else {
           --draft.playerLives;
         }
 
@@ -246,7 +244,9 @@ function App() {
           />
         )}
         {state.status === "Death" && (
-          <Popup onDismiss={() => {}}><p>You are dead.</p></Popup>
+          <Popup onDismiss={() => {}}>
+            <p>You are dead.</p>
+          </Popup>
         )}
       </div>
     </div>

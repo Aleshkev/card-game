@@ -1,4 +1,7 @@
 
+let nextId = 1
+export const newId = () => nextId++
+
 
 /** Prefix of `xs` of length `n`. Empty for negative `n`. */
 export function take<T>(xs: T[], n: number): T[] {
@@ -44,4 +47,42 @@ export function count<T>(xs: T[], p: (x: T) => boolean): number {
 
 export function enumFromTo(a: number, b: number): number[] {
   return Array.from({ length: b - a + 1 }, (_, i) => a + i)
+}
+
+export function pivot<T, TKey extends number>(xs: T[], toKey: (x: T) => TKey): Map<TKey, T[]> {
+  const map: Map<TKey, T[]> = new Map()
+  for (const x of xs) {
+    const key = toKey(x)
+    const l = map.get(key)
+    if (l === undefined) {
+      map.set(key, [x])
+    } else {
+      l.push(x)
+    }
+  }
+  return new Map([...map.entries()].sort(([a, _], [b, _2]) => a - b))
+}
+
+export function bucket<T>(xs: T[], toIndex: (x: T) => number, n: number): T[][] {
+  const arr: T[][] = Array.from({ length: n }, () => [])
+  for (const x of xs) {
+    const i = toIndex(x)
+    console.assert(i < n, `Out of range: ${i}, ${n}`)
+    arr[i].push(x)
+  }
+  return arr
+}
+
+export function maxBy<T>(xs: T[], toKey: (x: T) => number): T | null {
+  if (xs.length === 0) return null
+  let maxX = xs[0]
+  let maxKey = toKey(xs[0])
+  for (let x of xs) {
+    const key = toKey(x)
+    if (key > maxKey) {
+      maxX = x
+      maxKey = key
+    }
+  }
+  return maxX
 }

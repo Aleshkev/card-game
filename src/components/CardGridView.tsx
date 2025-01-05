@@ -1,4 +1,4 @@
-import { Card, sortCards } from "../types/types";
+import { Card, sortCards } from "../types/card";
 import { CardPlaceholder } from "./CardPlaceholder";
 import { CardView } from "./CardView";
 
