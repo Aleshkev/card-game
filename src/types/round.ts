@@ -11,8 +11,9 @@ export type RoundState = {
 }
 
 export type RoundMeta = {
-  cardsPerHand: number
-  idealCards: number
+  maxDealerHandSize: number
+  maxPlayerHandSize: number
+  idealNCardsHeldByPlayer: number
   hands: number
   items: number
 }

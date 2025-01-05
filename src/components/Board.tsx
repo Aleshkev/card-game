@@ -1,5 +1,5 @@
 import { Card } from "../types/card";
-import { getBestHand, handToString } from "../types/hand";
+import { compareHands, getBestHand, handToString } from "../types/hand";
 import { Item } from "../types/item";
 import { RoundMeta, RoundState } from "../types/round";
 import {} from "../types/types";
@@ -36,7 +36,7 @@ export function Board({
   const dealerHand = (
     <CardArrayView
       cards={roundState.dealerHand}
-      placeholders={roundMeta.cardsPerHand}
+      placeholders={roundMeta.maxDealerHandSize}
     />
   );
   const dealerDeck = (
@@ -48,7 +48,7 @@ export function Board({
   const playerHand = (
     <CardArrayView
       cards={roundState.playerHand}
-      placeholders={roundMeta.cardsPerHand}
+      placeholders={roundMeta.maxPlayerHandSize}
       onClickCard={onPlayerUnselectCard}
     />
   );
@@ -70,6 +70,8 @@ export function Board({
     />
   );
 
+  const result = showResult && compareHands(getBestHand(roundState.playerHand), getBestHand(roundState.dealerHand))
+
   return (
     <div className=" h-full justify-center flex flex-col gap-20 items-stretch p-2">
       <div className="relative">
@@ -80,6 +82,11 @@ export function Board({
           )) || <div>&nbsp;</div>}
         </div>
         <div className="absolute right-0 top-0">{dealerDeck}</div>
+      </div>
+      <div className="flex  flex-col items-center text-2xl">
+        {showResult && result && (
+          <div>{result > 0 ? "You win." : result === 0 ? "Draw." : "You lose a life."}</div>
+        ) || <div>&nbsp;</div>}
       </div>
       <div>
         <div className="flex flex-col justify-center gap-2 items-center">

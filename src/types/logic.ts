@@ -7,14 +7,13 @@ import { RoundMeta, RoundState } from "./round";
 
 function transferCards(target: Card[], source: Card[], n: number): [Card[], Card[]] {
   let [transferredCards, newSource] = splitAt(source, n)
-  console.log(transferredCards)
   return [[...target, ...transferredCards], newSource]
 }
 
 export function newRound(meta: RoundMeta, previousRound?: RoundState): RoundState {
-  let n = meta.cardsPerHand * meta.hands
+  let n = meta.maxDealerHandSize * meta.hands
   let [dealerDeck, rest] = splitAt(shuffle(standardDeck()), n)
-  let playerDeck = take(rest, n)
+  let playerDeck = take(rest, meta.maxPlayerHandSize * meta.hands)
   return {
     dealerHand: [],
     dealerDeck,

@@ -54,13 +54,13 @@ function reduce(state: GameState, action: Action): GameState {
   return produce(state, (draft) => {
     switch (action.kind) {
       case "BeginRound": {
-        draft.round = givePlayerCards(state.round, state.roundMeta.idealCards);
+        draft.round = givePlayerCards(state.round, state.roundMeta.idealNCardsHeldByPlayer);
         draft.status = "PlayerChoosesCards";
         return;
       }
       case "SelectCard": {
         if (state.status !== "PlayerChoosesCards") return;
-        if (state.round.playerHand.length >= state.roundMeta.cardsPerHand)
+        if (state.round.playerHand.length >= state.roundMeta.maxPlayerHandSize)
           return;
         draft.round.playerHand.push(action.card);
         return;
@@ -76,7 +76,7 @@ function reduce(state: GameState, action: Action): GameState {
         if (state.status !== "PlayerChoosesCards") return;
         draft.round = giveDealerCards(
           state.round,
-          state.roundMeta.cardsPerHand
+          state.roundMeta.maxDealerHandSize
         );
         draft.status = "SelectingDealersCards";
         return;
@@ -102,7 +102,7 @@ function reduce(state: GameState, action: Action): GameState {
       }
       case "ClearUsedCards": {
         draft.round = discardPlayedCards(draft.round);
-        draft.round = givePlayerCards(draft.round, state.roundMeta.idealCards);
+        draft.round = givePlayerCards(draft.round, state.roundMeta.idealNCardsHeldByPlayer);
         if (draft.round.dealerDeck.length === 0) {
           draft.status = "RoundEnded";
         } else {
@@ -155,15 +155,18 @@ function reduce(state: GameState, action: Action): GameState {
 }
 
 function App() {
+  const initialRoundMeta: RoundMeta = {
+    maxDealerHandSize: 4,
+    maxPlayerHandSize: 3,
+    idealNCardsHeldByPlayer: 6,
+    hands: 5,
+    items: 3,
+
+  }
   const [state, dispatch] = useReducer(reduce, {
     status: "BeginRound",
     playerLives: 3,
-    roundMeta: {
-      cardsPerHand: 3,
-      idealCards: 6,
-      hands: 5,
-      items: 3,
-    },
+    roundMeta: initialRoundMeta,
     round: {
       dealerHand: [],
       dealerDeck: take(shuffle(standardDeck()), 12),
@@ -207,7 +210,7 @@ function App() {
             }}
             onShowDealerDeck={() => dispatch({ kind: "ShowDealersDeck" })}
             onShowPlayerDeck={() => dispatch({ kind: "ShowPlayerDeck" })}
-            showResult={state.status === "ShowingHandResult"}
+            showResult={state.status === "ShowingHandResult" || state.status === "Death"}
             allowSubmit={state.status === "PlayerChoosesCards"}
           />
         </div>
