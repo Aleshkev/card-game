@@ -1,5 +1,5 @@
 import { bucket, enumFromTo, maxBy } from "../utilities/functional"
-import { Card, cardRanks, maxCardRank, minCardRank } from "./card"
+import { Card, cardColors, cardRanks, maxCardRank, minCardRank } from "./card"
 
 const handKindsByValue = ["HighCard", "Straight", "NOfAkind", "StraightFlush"] as const
 export type Hand = {
@@ -13,6 +13,10 @@ export function compareHands(a: Hand, b: Hand) {
   return (a.span - b.span
     || handKindsByValue.indexOf(a.kind) - handKindsByValue.indexOf(b.kind)
     || a.rank - b.rank)
+}
+
+export function sortHands(hands: Hand[]): Hand[] {
+  return hands.slice().sort(compareHands)
 }
 
 export function getBestStraight(cards: Card[]): Hand | null {
@@ -39,6 +43,11 @@ export function getBestStraight(cards: Card[]): Hand | null {
   }
 }
 
+export function getBestStraightFlush(cards: Card[]): Hand | null {
+  const straights = sortHands(cardColors.map(fixedColor => getBestStraight(cards.filter(({ color }) => color === fixedColor))).filter(x => x !== null))
+  return straights.length === 0 ? null : { ...straights[straights.length - 1], kind: "StraightFlush" }
+}
+
 export function getBestNOfAKind(cards: Card[]): Hand | null {
   let currentBest: Card[] | null = null
   const cardsByRank = bucket(cards, ({ rank }) => rank, maxCardRank + 1)
@@ -48,7 +57,7 @@ export function getBestNOfAKind(cards: Card[]): Hand | null {
       currentBest = cardsByRank[rank]
     }
   }
-  if(currentBest === null) return null
+  if (currentBest === null) return null
   return {
     kind: "NOfAkind",
     span: currentBest.length,
@@ -72,6 +81,7 @@ export function getBestHand(cards: Card[]): Hand {
   console.assert(cards.length > 0)
   const hands = [
     getBestStraight(cards),
+    getBestStraightFlush(cards),
     getBestNOfAKind(cards),
     getBestHighCard(cards)
   ].filter(x => x !== null)
@@ -81,11 +91,15 @@ export function getBestHand(cards: Card[]): Hand {
 
 export function handToString(hand: Hand) {
   switch (hand.kind) {
+    case "Straight":
+      return `${hand.span}-card straight (${hand.rank} high card)`
+    case "StraightFlush":
+      return `${hand.span}-card straight flush (${hand.rank} high card)`
     case "HighCard":
       return `${hand.rank} high card`
     case "NOfAkind":
       return `${hand.cards.length} of a kind (${hand.rank} high card)`
-    default:
-      return `${hand.span}-card ${hand.kind} (${hand.rank} high card)`
+    // default:
+    //   return `${hand.span}-card ${hand.kind} (${hand.rank} high card)`
   }
 }
