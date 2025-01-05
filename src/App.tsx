@@ -54,20 +54,20 @@ function reduce(state: GameState, action: Action): GameState {
   return produce(state, (draft) => {
     switch (action.kind) {
       case "BeginRound": {
-        draft.round = givePlayerCards(state.round, state.roundMeta.idealNCardsHeldByPlayer);
+        draft.round = givePlayerCards(state.round, state.roundMeta.idealNDrawnCards);
         draft.status = "PlayerChoosesCards";
         return;
       }
       case "SelectCard": {
         if (state.status !== "PlayerChoosesCards") return;
-        if (state.round.playerHand.length >= state.roundMeta.maxPlayerHandSize)
+        if (state.round.playerPlayedCards.length >= state.roundMeta.maxPlayerHandSize)
           return;
-        draft.round.playerHand.push(action.card);
+        draft.round.playerPlayedCards.push(action.card);
         return;
       }
       case "UnselectCard": {
         if (state.status !== "PlayerChoosesCards") return;
-        draft.round.playerHand = diffById(draft.round.playerHand, [
+        draft.round.playerPlayedCards = diffById(draft.round.playerPlayedCards, [
           action.card,
         ]);
         return;
@@ -84,8 +84,8 @@ function reduce(state: GameState, action: Action): GameState {
       case "ShowResult": {
         if (state.status !== "SelectingDealersCards") return;
 
-        let playerBestHand = getBestHand(state.round.playerHand);
-        let dealerBestHand = getBestHand(state.round.dealerHand);
+        let playerBestHand = getBestHand(state.round.playerPlayedCards);
+        let dealerBestHand = getBestHand(state.round.dealerPlayedCards);
         let cmp = compareHands(playerBestHand, dealerBestHand);
         if (cmp >= 0) {
           // Player wins
@@ -102,7 +102,7 @@ function reduce(state: GameState, action: Action): GameState {
       }
       case "ClearUsedCards": {
         draft.round = discardPlayedCards(draft.round);
-        draft.round = givePlayerCards(draft.round, state.roundMeta.idealNCardsHeldByPlayer);
+        draft.round = givePlayerCards(draft.round, state.roundMeta.idealNDrawnCards);
         if (draft.round.dealerDeck.length === 0) {
           draft.status = "RoundEnded";
         } else {
@@ -158,8 +158,8 @@ function App() {
   const initialRoundMeta: RoundMeta = {
     maxDealerHandSize: 4,
     maxPlayerHandSize: 3,
-    idealNCardsHeldByPlayer: 6,
-    hands: 5,
+    idealNDrawnCards: 6,
+    idealNPlays: 5,
     items: 3,
 
   }
@@ -167,14 +167,7 @@ function App() {
     status: "BeginRound",
     playerLives: 3,
     roundMeta: initialRoundMeta,
-    round: {
-      dealerHand: [],
-      dealerDeck: take(shuffle(standardDeck()), 12),
-      playerCards: [],
-      playerHand: [],
-      playerDeck: take(shuffle(standardDeck()), 12),
-      playerItems: randomItems(2),
-    },
+    round: newRound(initialRoundMeta),
   });
 
   return (

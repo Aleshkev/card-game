@@ -1,7 +1,7 @@
 import { produce } from "immer";
 import {    } from "./types";
 import { diffById, shuffle, splitAt, take } from "../utilities/functional";
-import { Card, standardDeck, minCardRank, maxCardRank, minCardColor, maxCardColor } from "./card";
+import { Card, standardDeck, minCardRank, maxCardRank, minCardSuit, maxCardSuit } from "./card";
 import { randomItems, Item } from "./item";
 import { RoundMeta, RoundState } from "./round";
 
@@ -11,14 +11,14 @@ function transferCards(target: Card[], source: Card[], n: number): [Card[], Card
 }
 
 export function newRound(meta: RoundMeta, previousRound?: RoundState): RoundState {
-  let n = meta.maxDealerHandSize * meta.hands
+  let n = meta.maxDealerHandSize * meta.idealNPlays
   let [dealerDeck, rest] = splitAt(shuffle(standardDeck()), n)
-  let playerDeck = take(rest, meta.maxPlayerHandSize * meta.hands)
+  let playerDeck = take(rest, meta.maxPlayerHandSize * meta.idealNPlays)
   return {
-    dealerHand: [],
+    dealerPlayedCards: [],
     dealerDeck,
-    playerCards: [],
-    playerHand: [],
+    playerDrawnCards: [],
+    playerPlayedCards: [],
     playerDeck,
     playerItems: [...(previousRound ? previousRound.playerItems : []), ...randomItems(meta.items)],
   }
@@ -26,23 +26,23 @@ export function newRound(meta: RoundMeta, previousRound?: RoundState): RoundStat
 
 export function givePlayerCards(round: RoundState, targetNCards: number): RoundState {
   return produce(round, (draft) => {
-    let n = Math.max(0, targetNCards - round.playerCards.length);
-    [draft.playerCards, draft.playerDeck] = transferCards(draft.playerCards, draft.playerDeck, n)
+    let n = Math.max(0, targetNCards - round.playerDrawnCards.length);
+    [draft.playerDrawnCards, draft.playerDeck] = transferCards(draft.playerDrawnCards, draft.playerDeck, n)
   })
 }
 
 export function giveDealerCards(round: RoundState, targetNCards: number): RoundState {
   return produce(round, (draft) => {
-    let n = Math.max(0, targetNCards - round.dealerHand.length);
-    [draft.dealerHand, draft.dealerDeck] = transferCards(draft.dealerHand, draft.dealerDeck, n)
+    let n = Math.max(0, targetNCards - round.dealerPlayedCards.length);
+    [draft.dealerPlayedCards, draft.dealerDeck] = transferCards(draft.dealerPlayedCards, draft.dealerDeck, n)
   })
 }
 
 export function discardPlayedCards(round: RoundState): RoundState {
   return produce(round, (draft) => {
-    draft.dealerHand = [];
-    draft.playerCards = diffById(draft.playerCards, draft.playerHand);
-    draft.playerHand = [];
+    draft.dealerPlayedCards = [];
+    draft.playerDrawnCards = diffById(draft.playerDrawnCards, draft.playerPlayedCards);
+    draft.playerPlayedCards = [];
   })
 }
 

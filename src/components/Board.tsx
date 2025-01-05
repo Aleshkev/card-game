@@ -33,10 +33,17 @@ export function Board({
   onUseItem,
   showResult,
 }: Props) {
-  const dealerHand = (
+  const playerBestHand = showResult && getBestHand(roundState.playerPlayedCards);
+  const dealerBestHand = showResult && getBestHand(roundState.dealerPlayedCards);
+  const result = playerBestHand && dealerBestHand && compareHands(playerBestHand, dealerBestHand);
+
+  const dealerPlayedCards = (
     <CardArrayView
-      cards={roundState.dealerHand}
+      cards={roundState.dealerPlayedCards}
       placeholders={roundMeta.maxDealerHandSize}
+      highlighted={
+        dealerBestHand ? dealerBestHand.cards.map(({ id }) => id) : undefined
+      }
     />
   );
   const dealerDeck = (
@@ -45,20 +52,23 @@ export function Board({
       onClick={onShowDealerDeck}
     />
   );
-  const playerHand = (
+  const playerPlayedCards = (
     <CardArrayView
-      cards={roundState.playerHand}
+      cards={roundState.playerPlayedCards}
       placeholders={roundMeta.maxPlayerHandSize}
       onClickCard={onPlayerUnselectCard}
+      highlighted={
+        playerBestHand ? playerBestHand.cards.map(({ id }) => id) : undefined
+      }
     />
   );
   const playerItems = (
     <ItemArrayView items={roundState.playerItems} onClickItem={onUseItem} />
   );
-  const playerCards = (
+  const playerDrawnCards = (
     <CardArrayView
-      cards={roundState.playerCards.filter(
-        (x) => roundState.playerHand.indexOf(x) === -1
+      cards={roundState.playerDrawnCards.filter(
+        (x) => roundState.playerPlayedCards.indexOf(x) === -1
       )}
       onClickCard={onPlayerSelectCard}
     />
@@ -70,31 +80,35 @@ export function Board({
     />
   );
 
-  const result = showResult && compareHands(getBestHand(roundState.playerHand), getBestHand(roundState.dealerHand))
-
   return (
     <div className=" h-full justify-center flex flex-col gap-20 items-stretch p-2">
       <div className="relative">
         <div className="  mx-auto flex flex-col gap-2 items-center justify-center">
-          {dealerHand}
-          {(showResult && (
-            <div>{handToString(getBestHand(roundState.dealerHand))}</div>
+          {dealerPlayedCards}
+          {(dealerBestHand && (
+            <div>{handToString(dealerBestHand)}</div>
           )) || <div>&nbsp;</div>}
         </div>
         <div className="absolute right-0 top-0">{dealerDeck}</div>
       </div>
       <div className="flex  flex-col items-center text-2xl">
-        {showResult && result && (
-          <div>{result > 0 ? "You win." : result === 0 ? "Draw." : "You lose a life."}</div>
-        ) || <div>&nbsp;</div>}
+        {(showResult && result && (
+          <div>
+            {result > 0
+              ? "You win."
+              : result === 0
+                ? "Draw."
+                : "You lose a life."}
+          </div>
+        )) || <div>&nbsp;</div>}
       </div>
       <div>
         <div className="flex flex-col justify-center gap-2 items-center">
-          {playerHand}
-          {(showResult && (
-            <div>{handToString(getBestHand(roundState.playerHand))}</div>
+          {playerPlayedCards}
+          {(playerBestHand && (
+            <div>{handToString(playerBestHand)}</div>
           )) || <div>&nbsp;</div>}
-          {(roundState.playerHand.length >= 1 && allowSubmit && (
+          {(roundState.playerPlayedCards.length >= 1 && allowSubmit && (
             <div onClick={onPlayerSubmit} className="underline cursor-pointer">
               Play
             </div>
@@ -103,7 +117,7 @@ export function Board({
       </div>
       <div className=" relative">
         {/* <div className=" absolute left-0 top-0">{playerItems}</div> */}
-        <div className=" mx-auto">{playerCards}</div>
+        <div className=" mx-auto">{playerDrawnCards}</div>
         <div className=" absolute right-0 top-0">{playerDeck}</div>
       </div>
     </div>

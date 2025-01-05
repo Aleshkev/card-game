@@ -3,10 +3,10 @@ import { expect, test } from "vitest"
 import { Card, newCard } from "./card"
 import { getBestHand, getBestHighCard, getBestNOfAKind, getBestStraight, getBestStraightFlush } from "./hand"
 
-const cardOne = newCard({ rank: 1, color: 1 })
-const cardTwo = newCard({ rank: 2, color: 1 })
-const cardThree = newCard({ rank: 3, color: 1 })
-const cardFour = newCard({ rank: 4, color: 1 })
+const cardOne = newCard({ rank: 1, suit: 1 })
+const cardTwo = newCard({ rank: 2, suit: 1 })
+const cardThree = newCard({ rank: 3, suit: 1 })
+const cardFour = newCard({ rank: 4, suit: 1 })
 const getIds = (xs: Card[]) => xs.map(({ id }) => id)
 
 test("finds a simple straight", () => {

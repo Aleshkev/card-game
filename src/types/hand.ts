@@ -1,5 +1,5 @@
 import { bucket, enumFromTo, maxBy } from "../utilities/functional"
-import { Card, cardColors, cardRanks, maxCardRank, minCardRank } from "./card"
+import { Card, cardSuits, cardRanks, maxCardRank, minCardRank } from "./card"
 
 const handKindsByValue = ["HighCard", "Straight", "NOfAkind", "StraightFlush"] as const
 export type Hand = {
@@ -44,7 +44,7 @@ export function getBestStraight(cards: Card[]): Hand | null {
 }
 
 export function getBestStraightFlush(cards: Card[]): Hand | null {
-  const straights = sortHands(cardColors.map(fixedColor => getBestStraight(cards.filter(({ color }) => color === fixedColor))).filter(x => x !== null))
+  const straights = sortHands(cardSuits.map(fixedSuit => getBestStraight(cards.filter(({ suit }) => suit === fixedSuit))).filter(x => x !== null))
   return straights.length === 0 ? null : { ...straights[straights.length - 1], kind: "StraightFlush" }
 }
 

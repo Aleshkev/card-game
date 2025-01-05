@@ -6,25 +6,25 @@ export const newCardId = () => newId() as CardId
 export type Card = {
   id: CardId
   rank: number
-  color: number
+  suit: number
 } & { _: "Card" }
 
 export const minCardRank = 1
 export const maxCardRank = 13
 export const cardRanks = enumFromTo(minCardRank, maxCardRank)
-export const minCardColor = 1
-export const maxCardColor = 4
-export const cardColors = enumFromTo(minCardColor, maxCardColor)
+export const minCardSuit = 1
+export const maxCardSuit = 4
+export const cardSuits = enumFromTo(minCardSuit, maxCardSuit)
 
-export const newCard: ((x: { rank: number, color: number }) => Card) =
-  ({ rank, color }) => {
+export const newCard: ((x: { rank: number, suit: number }) => Card) =
+  ({ rank, suit }) => {
     console.assert(cardRanks.includes(rank))
-    console.assert(cardColors.includes(color))
-    return { id: newCardId(), rank, color } as Card
+    console.assert(cardSuits.includes(suit))
+    return { id: newCardId(), rank, suit: suit } as Card
   }
 
 export function compareCardsByRank(a: Card, b: Card) {
-  return a.rank - b.rank || a.color - b.color
+  return a.rank - b.rank || a.suit - b.suit
 }
 
 export function sortCards(cards: Card[]): Card[] {
@@ -33,9 +33,9 @@ export function sortCards(cards: Card[]): Card[] {
 
 export function standardDeck(): Card[] {
   let cards: Card[] = []
-  for (let color of cardColors) {
+  for (let suit of cardSuits) {
     for (let rank of cardRanks) {
-      cards.push(newCard({ color, rank }))
+      cards.push(newCard({ suit, rank }))
     }
   }
   return cards

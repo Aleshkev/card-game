@@ -1,4 +1,4 @@
-import { Card } from "../types/card";
+import { Card, CardId } from "../types/card";
 import { CardPlaceholder } from "./CardPlaceholder";
 import { CardView } from "./CardView";
 
@@ -6,9 +6,10 @@ export type Props = {
   cards: Card[];
   placeholders?: number;
   onClickCard?: (card: Card) => void;
+  highlighted?: CardId[]
 };
 
-export function CardArrayView({ cards, onClickCard, placeholders }: Props) {
+export function CardArrayView({ cards, onClickCard, placeholders, highlighted }: Props) {
   if (placeholders === undefined) {
     placeholders = 1;
   }
@@ -20,6 +21,7 @@ export function CardArrayView({ cards, onClickCard, placeholders }: Props) {
           card={card}
           key={card.id}
           onClick={() => onClickCard && onClickCard(card)}
+          highlighted={highlighted?.includes(card.id)}
         />
       ))}
       {Array.from(
