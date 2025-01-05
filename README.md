@@ -1,50 +1,14 @@
-# React + TypeScript + Vite
+# Card Game
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a card game inspired by Buckshot Roulette and Balatro. Built using React.
 
-Currently, two official plugins are available:
+## Design considerations
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+To avoid confusing names during development, these are terms that are used in code:
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+1. a "card" has a "suit" and a "rank"
+1. "player's drawn cards" are cards that player holds in his hand.
+2. "played cards" are cards that are played (player selects them from their drawn cards, dealer takes them from top of their deck).
+3. a "hand" is a sequence of cards that is rated for value, e.g. a straight flush. It is usually a subset of played cards.
+1. "ideal X" is a term used to refer to a value that is used to set some other value but won't always be set precisely. For example, "ideal number of player's drawn cards" is used to give player cards after a play but the number of player's drawn cards will be greater if the player gets cards from an item.
+2. if a React component would be named the same as type, its name is suffixed with "View", e.g. "Card" and "CardView"
