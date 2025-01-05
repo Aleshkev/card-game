@@ -15,15 +15,21 @@ export function CardView({ card, onClick, highlighted, isBackside }: Props) {
   return (
     <motion.div
       key={card.id}
-      layout
+      layout="position"
       layoutId={"layoutId_card_" + card.id}
-      transition={{}}
+      // Because rotateY apparently doesn't work (why?), we rotate 180 degrees to have any animation at all
+      // TODO: At least change opacity smoothly?
+      style={{ rotate: isBackside ? 180 : 0, rotateY: isBackside ? 180 : 0 }}
+      className="[transform-style:preserve-3d]"
+      onClick={() => onClick && onClick()}
+      whileHover={onClick && { translateY: -8 }}
+      transition={{ layout: {duration: 0.05}, duration: 0.1}}
     >
       <motion.div
         key={card.id}
-        style={{ color, transform: isBackside ? "rotateY(180deg)" : "rotateY(0)" }}
-        className={`w-20 h-28 border border-black ${onClick ? "hover:-translate-y-2 cursor-pointer" : ""}  flex  select-none ${highlighted ? "-translate-y-2 shadow" : ""} [transform-style:preserve-3d]`}
-        onClick={() => onClick && onClick()}
+        // style={{ color, transform: isBackside ? "rotateY(180deg)" : "rotateY(0)" }}
+        style={{ color }}
+        className={`w-20 h-28 border border-black ${onClick ? " cursor-pointer" : ""}  flex  select-none ${highlighted ? "-translate-y-2 shadow" : ""} [transform-style:preserve-3d]`}
       >
         <div className="w-full h-full [transform-style:preserve-3d]">
           <div className="absolute top-0 left-0 w-full h-full   bg-white [backface-visibility:hidden]">
@@ -39,8 +45,7 @@ export function CardView({ card, onClick, highlighted, isBackside }: Props) {
           <div
             className="absolut top-0 left-0 w-full h-full bg-slate-100 [backface-visibility:hidden]"
             style={{ transform: "rotateY(180deg)" }}
-          >
-          </div>
+          ></div>
         </div>
       </motion.div>
     </motion.div>

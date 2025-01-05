@@ -16,7 +16,7 @@ export function CardStack({ cards, onClick }: Props) {
         <CardPlaceholder />
       </div>
       <div className=" row-start-1 col-start-1">
-        <div className={`${onClick ? "cursor-pointer" : ""}`} onClick={onClick}>
+        <motion.div className={`${onClick ? "cursor-pointer" : ""}`} onClick={onClick} whileHover={{scale: 1.05}}>
           <div className=" flex flex-row items-end gap-2">
             <div className="w-20 h-28">
               <div className="relative">
@@ -35,7 +35,7 @@ export function CardStack({ cards, onClick }: Props) {
             </div>
             <p className="">{cards.length}</p>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

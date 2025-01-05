@@ -12,10 +12,16 @@ export function Popup({ onDismiss, children }: Props) {
         className="absolute w-full h-full top-0 backdrop-blur-sm p-4 flex items-center"
         onClick={onDismiss}
         animate={{ "--tw-backdrop-blur": "blur(4px)" }}
+        // transition={{ duration: 1 }}
       >
-        <div className=" mx-auto border border-black bg-white/50 p-4 flex flex-col items-center gap-1">
+        <motion.div
+          className=" mx-auto border border-black bg-white/50 p-4 flex flex-col items-center gap-1"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: .5 }}
+        >
           {children}
-        </div>
+        </motion.div>
       </motion.div>
     </AnimatePresence>
   );
