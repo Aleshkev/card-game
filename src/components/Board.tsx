@@ -16,6 +16,8 @@ export type Props = {
   allowSubmit: boolean;
   onPlayerSubmit: () => void;
   onShowDealerDeck: () => void;
+  showingPlayerDeck: boolean;
+  showingDealerDeck: boolean;
   onShowPlayerDeck: () => void;
   onUseItem: (item: Item) => void;
   showResult: boolean;
@@ -30,12 +32,19 @@ export function Board({
   allowSubmit,
   onShowDealerDeck,
   onShowPlayerDeck,
+  showingPlayerDeck,
+  showingDealerDeck,
   onUseItem,
   showResult,
 }: Props) {
-  const playerBestHand = showResult && getBestHand(roundState.playerPlayedCards);
-  const dealerBestHand = showResult && getBestHand(roundState.dealerPlayedCards);
-  const result = playerBestHand && dealerBestHand && compareHands(playerBestHand, dealerBestHand);
+  const playerBestHand =
+    showResult && getBestHand(roundState.playerPlayedCards);
+  const dealerBestHand =
+    showResult && getBestHand(roundState.dealerPlayedCards);
+  const result =
+    playerBestHand &&
+    dealerBestHand &&
+    compareHands(playerBestHand, dealerBestHand);
 
   const dealerPlayedCards = (
     <CardArrayView
@@ -48,7 +57,7 @@ export function Board({
   );
   const dealerDeck = (
     <CardStack
-      nCards={roundState.dealerDeck.length}
+      cards={showingDealerDeck ? [] : roundState.dealerDeck}
       onClick={onShowDealerDeck}
     />
   );
@@ -75,7 +84,7 @@ export function Board({
   );
   const playerDeck = (
     <CardStack
-      nCards={roundState.playerDeck.length}
+      cards={showingPlayerDeck ? [] : roundState.playerDeck}
       onClick={onShowPlayerDeck}
     />
   );
@@ -85,9 +94,9 @@ export function Board({
       <div className="relative">
         <div className="  mx-auto flex flex-col gap-2 items-center justify-center">
           {dealerPlayedCards}
-          {(dealerBestHand && (
-            <div>{handToString(dealerBestHand)}</div>
-          )) || <div>&nbsp;</div>}
+          {(dealerBestHand && <div>{handToString(dealerBestHand)}</div>) || (
+            <div>&nbsp;</div>
+          )}
         </div>
         <div className="absolute right-0 top-0">{dealerDeck}</div>
       </div>
@@ -105,9 +114,9 @@ export function Board({
       <div>
         <div className="flex flex-col justify-center gap-2 items-center">
           {playerPlayedCards}
-          {(playerBestHand && (
-            <div>{handToString(playerBestHand)}</div>
-          )) || <div>&nbsp;</div>}
+          {(playerBestHand && <div>{handToString(playerBestHand)}</div>) || (
+            <div>&nbsp;</div>
+          )}
           {(roundState.playerPlayedCards.length >= 1 && allowSubmit && (
             <div onClick={onPlayerSubmit} className="underline cursor-pointer">
               Play
@@ -117,7 +126,7 @@ export function Board({
       </div>
       <div className=" relative">
         {/* <div className=" absolute left-0 top-0">{playerItems}</div> */}
-        <div className=" mx-auto">{playerDrawnCards}</div>
+        <div className="  flex flex-col items-center">{playerDrawnCards}</div>
         <div className=" absolute right-0 top-0">{playerDeck}</div>
       </div>
     </div>

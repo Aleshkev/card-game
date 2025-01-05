@@ -16,7 +16,10 @@ import { Card, standardDeck } from "./types/card";
 import { Item, randomItems } from "./types/item";
 import { RoundState } from "./types/roundState";
 import { compareHands, getBestHand } from "./types/hand";
-import { randomRoundConditions, RoundConditions } from "./types/roundConditions";
+import {
+  randomRoundConditions,
+  RoundConditions,
+} from "./types/roundConditions";
 
 type GameState = {
   status: Status;
@@ -27,6 +30,7 @@ type GameState = {
 
 type Status =
   | "BeginRound"
+  | "PlayerWaitsForCards"
   | "PlayerChoosesCards"
   | "ShowPlayersDeck"
   | "ShowDealersDeck"
@@ -37,6 +41,7 @@ type Status =
 
 type Action =
   | { kind: "BeginRound" }
+  | { kind: "GiveFirstCards" }
   | { kind: "SelectCard"; card: Card }
   | { kind: "UnselectCard"; card: Card }
   | { kind: "" }
@@ -54,12 +59,16 @@ function reduce(state: GameState, action: Action): GameState {
   return produce(state, (draft) => {
     switch (action.kind) {
       case "BeginRound": {
+        draft.status = "PlayerWaitsForCards"
+        return;
+      }
+      case "GiveFirstCards": {
         draft.round = givePlayerCards(
           state.round,
           state.roundConditions.idealNDrawnCards
         );
         draft.status = "PlayerChoosesCards";
-        return;
+        return
       }
       case "SelectCard": {
         if (state.status !== "PlayerChoosesCards") return;
@@ -172,6 +181,7 @@ function App() {
     roundConditions: initialRoundMeta,
     round: newRound(initialRoundMeta),
   });
+  console.log(state);
 
   return (
     <div
@@ -210,6 +220,14 @@ function App() {
               state.status === "ShowingHandResult" || state.status === "Death"
             }
             allowSubmit={state.status === "PlayerChoosesCards"}
+            showingPlayerDeck={
+              state.status === "ShowPlayersDeck" ||
+              state.status === "BeginRound"
+            }
+            showingDealerDeck={
+              state.status === "ShowDealersDeck" ||
+              state.status === "BeginRound"
+            }
           />
         </div>
         {(state.status === "ShowDealersDeck" ||
@@ -231,6 +249,9 @@ function App() {
             <p>Your cards:</p>
             <CardGridView cards={state.round.playerDeck} />
           </Popup>
+        )}
+        {state.status === "PlayerWaitsForCards" && (
+          <ClickScreen onClick={() => dispatch({ kind: "GiveFirstCards" })} />
         )}
         {state.status === "SelectingDealersCards" && (
           <ClickScreen onClick={() => dispatch({ kind: "ShowResult" })} />
