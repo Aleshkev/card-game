@@ -1,17 +1,25 @@
 import { motion } from "motion/react";
 import { Card } from "../types/card";
+import { CardFrontSideGraphic } from "./CardFrontSideGraphic";
+import { CardBackSideGraphic } from "./CardBackSideGraphic";
 export type Props = {
   card: Card;
   onClick?: () => void;
   highlighted?: boolean;
   isBackside?: boolean;
+  rotate?: number;
 };
 
-export function CardView({ card, onClick, highlighted, isBackside }: Props) {
-  const text = "" + card.rank;
-  const color = card.suit <= 2 ? "#dc2626" : "#262626";
-  const suit = "_♥♦♠♣"[card.suit];
+export function CardView({
+  card,
+  onClick,
+  highlighted,
+  isBackside,
+  rotate,
+}: Props) {
+  rotate = rotate || 0;
 
+  // TODO: when a card leaves player's hand, it is behind all other cards in player's hand. should be above cards to the left still
   return (
     <motion.div
       key={card.id}
@@ -19,35 +27,33 @@ export function CardView({ card, onClick, highlighted, isBackside }: Props) {
       layoutId={"layoutId_card_" + card.id}
       // Because rotateY apparently doesn't work (why?), we rotate 180 degrees to have any animation at all
       // TODO: At least change opacity smoothly?
-      style={{ rotate: isBackside ? 180 : 0, rotateY: isBackside ? 180 : 0 }}
-      className="[transform-style:preserve-3d]"
-      onClick={() => onClick && onClick()}
-      whileHover={onClick && { translateY: -8 }}
-      transition={{ layout: {duration: 0.05}, duration: 0.1}}
+      style={{
+        rotate: isBackside ? 360 + rotate : rotate,
+        scale: highlighted ? 1.1 : 1,
+        // rotateY: isBackside ? 180 : 0,
+      }}
+      onHoverStart={() => {
+        document.getElementsByTagName("body")[0].style.paddingRight = "0px";
+      }}
+      className="cursor-pointer drop-shadow-lg "
+      onTap={() => onClick && onClick()}
+      whileHover={onClick && { translateY: -20, translateX: -20, scale: 1.05 }}
+      transition={{ layout: { duration: 0.2 }, duration: 0.3 }}
     >
-      <motion.div
-        key={card.id}
-        // style={{ color, transform: isBackside ? "rotateY(180deg)" : "rotateY(0)" }}
-        style={{ color }}
-        className={`w-20 h-28 border border-black ${onClick ? " cursor-pointer" : ""}  flex  select-none ${highlighted ? "-translate-y-2 shadow" : ""} [transform-style:preserve-3d]`}
+      <div
+        className="w-full h-full [transform-style:preserve-3d] relative"
+        style={{ transform: isBackside ? "rotateY(180deg)" : "" }}
       >
-        <div className="w-full h-full [transform-style:preserve-3d]">
-          <div className="absolute top-0 left-0 w-full h-full   bg-white [backface-visibility:hidden]">
-            <div className="absolute left-0 top-0 px-2 py-1 flex flex-col items-center leading-none">
-              <p>{text}</p>
-              <p>{suit}</p>
-            </div>
-            <div className="absolute right-0 bottom-0 px-2 py-1 rotate-180 flex flex-col items-center leading-none">
-              <p>{text}</p>
-              <p>{suit}</p>
-            </div>
-          </div>
-          <div
-            className="absolut top-0 left-0 w-full h-full bg-slate-100 [backface-visibility:hidden]"
-            style={{ transform: "rotateY(180deg)" }}
-          ></div>
+        <div className="w-full h-full [backface-visibility:hidden]">
+          <CardFrontSideGraphic card={card} />
         </div>
-      </motion.div>
+        <div
+          className="absolute top-0 left-0 [backface-visibility:hidden] "
+          style={{ transform: "rotateY(180deg)" }}
+        >
+          <CardBackSideGraphic />
+        </div>
+      </div>
     </motion.div>
   );
 }

@@ -9,19 +9,25 @@ export function Popup({ onDismiss, children }: Props) {
   return (
     <AnimatePresence>
       <motion.div
-        className="absolute w-full h-full top-0 backdrop-blur-sm p-4 flex items-center"
+        className="absolute w-full h-full top-0 backdrop-blur p-4 flex items-center"
         onClick={onDismiss}
-        animate={{ "--tw-backdrop-blur": "blur(4px)" }}
-        // transition={{ duration: 1 }}
+        animate={{
+          "--tw-backdrop-blur": "blur(8px)",
+          opacity: 1,
+        }}
+        exit={{
+          // "--tw-backdrop-blur": "blur(0px)",
+          opacity: 0,
+        }}
       >
-        <motion.div
-          className=" mx-auto border border-black bg-white/50 p-4 flex flex-col items-center gap-1"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: .5 }}
+        <div
+          className=" mx-auto  p-4 flex flex-col items-center gap-1"
+          // initial={{ opacity: 0 }}
+          // animate={{ opacity: 1 }}
+          // transition={{ duration: .5 }}
         >
           {children}
-        </motion.div>
+        </div>
       </motion.div>
     </AnimatePresence>
   );

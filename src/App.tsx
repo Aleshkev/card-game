@@ -185,7 +185,7 @@ function App() {
 
   return (
     <div
-      className={`flex flex-row  items-stretch min-h-[100vh] font-serif ${state.status === "Death" ? " bg-red-300" : ""}`}
+      className={`flex flex-row  items-stretch min-h-[100vh] overflow-hidden ${state.status === "Death" ? " bg-red-300" : ""}`}
     >
       <div className="">
         {state.status}

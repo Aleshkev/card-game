@@ -1,7 +1,7 @@
 export function CardPlaceholder() {
   return (
-    <div className="w-20 h-28 flex p-2">
-      <div className="grow border border-slate-600  border-dashed">
+    <div className="w-[160px] h-[220px] flex p-8">
+      <div className="grow border-4 border-slate-400  border-dashed rounded-lg">
         
       </div>
     </div>

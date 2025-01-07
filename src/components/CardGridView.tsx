@@ -10,10 +10,12 @@ export function CardGridView({ cards }: Props) {
   const cardsSorted = sortCards(cards);
   return (
     <div className=" mx-auto flex flex-col gap-2">
-      <div className="flex flex-row flex-wrap gap-2 ">
+      <div className="flex flex-row flex-wrap gap-2 ml-[100px] ">
         {(cardsSorted.length &&
           cardsSorted.map((card) => (
-            <CardView key={card.id} card={card} />
+            <div className="-ml-[100px]" key={card.id}>
+              <CardView card={card} />
+            </div>
           ))) || <CardPlaceholder />}
       </div>
     </div>

@@ -4,8 +4,10 @@ import { Item } from "../types/item";
 import { RoundState } from "../types/roundState";
 import { RoundConditions } from "../types/roundConditions";
 import { CardArrayView } from "./CardArrayView";
-import { CardStack } from "./CardStack";
+import { CardDeckView } from "./CardDeckView";
 import { ItemArrayView } from "./ItemArrayView";
+import { Button } from "./Button";
+import { AnimatePresence, motion } from "motion/react";
 
 export type Props = {
   roundConditions: RoundConditions;
@@ -56,7 +58,7 @@ export function Board({
     />
   );
   const dealerDeck = (
-    <CardStack
+    <CardDeckView
       cards={showingDealerDeck ? [] : roundState.dealerDeck}
       onClick={onShowDealerDeck}
     />
@@ -80,17 +82,18 @@ export function Board({
         (x) => roundState.playerPlayedCards.indexOf(x) === -1
       )}
       onClickCard={onPlayerSelectCard}
+      isFan={true}
     />
   );
   const playerDeck = (
-    <CardStack
+    <CardDeckView
       cards={showingPlayerDeck ? [] : roundState.playerDeck}
       onClick={onShowPlayerDeck}
     />
   );
 
   return (
-    <div className=" h-full justify-center flex flex-col gap-20 items-stretch p-2">
+    <div className=" h-full justify-center flex flex-col gap-2 items-stretch p-2">
       <div className="relative">
         <div className="  mx-auto flex flex-col gap-2 items-center justify-center">
           {dealerPlayedCards}
@@ -98,7 +101,7 @@ export function Board({
             <div>&nbsp;</div>
           )}
         </div>
-        <div className="absolute right-0 top-0">{dealerDeck}</div>
+        <div className="absolute right-0 top-0 px-8">{dealerDeck}</div>
       </div>
       <div className="flex  flex-col items-center text-2xl">
         {(showResult && result && (
@@ -117,17 +120,26 @@ export function Board({
           {(playerBestHand && <div>{handToString(playerBestHand)}</div>) || (
             <div>&nbsp;</div>
           )}
-          {(roundState.playerPlayedCards.length >= 1 && allowSubmit && (
-            <div onClick={onPlayerSubmit} className="underline cursor-pointer">
-              Play
-            </div>
-          )) || <div>&nbsp;</div>}
+          <div className="relative">
+            <AnimatePresence>
+              {roundState.playerPlayedCards.length >= 1 && allowSubmit && (
+                <motion.div
+                  exit={{ scale: 0.5, opacity: 0.5 }}
+                  transition={{ duration: 0.1 }}
+                  style={{translateX: "-50%", translateY: "-120%"}}
+                  className="absolute"
+                >
+                  <Button onClick={onPlayerSubmit} text={"play"} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
       <div className=" relative">
         {/* <div className=" absolute left-0 top-0">{playerItems}</div> */}
         <div className="  flex flex-col items-center">{playerDrawnCards}</div>
-        <div className=" absolute right-0 top-0">{playerDeck}</div>
+        <div className=" absolute right-0 top-0 px-8">{playerDeck}</div>
       </div>
     </div>
   );
