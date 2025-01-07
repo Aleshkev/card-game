@@ -32,10 +32,7 @@ export function CardView({
         scale: highlighted ? 1.1 : 1,
         // rotateY: isBackside ? 180 : 0,
       }}
-      onHoverStart={() => {
-        document.getElementsByTagName("body")[0].style.paddingRight = "0px";
-      }}
-      className="cursor-pointer drop-shadow-lg "
+      className="cursor-pointer drop-shadow-lg"
       onTap={() => onClick && onClick()}
       whileHover={onClick && { translateY: -20, translateX: -20, scale: 1.05 }}
       transition={{ layout: { duration: 0.2 }, duration: 0.3 }}

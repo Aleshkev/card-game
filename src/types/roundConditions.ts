@@ -15,7 +15,7 @@ export function randomRoundConditions(difficulty: number): RoundConditions {
     maxPlayerHandSize: 3,
     idealNDrawnCards: 6,
     idealNPlays: 4,
-    items: 0
+    items: 2
   }
 }
 

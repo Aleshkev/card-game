@@ -6,7 +6,7 @@ export type Props = {
 }
 
 export function RoundMetaView({roundConditions, playerLives}: Props) {
-  return <div className=" border border-black flex flex-col gap-2 p-2 m-2">
+  return <div className="  rounded-lg bg-gray-600 text-white flex flex-col gap-2 p-5 m-4">
     <p>The dealer plays {roundConditions.maxDealerHandSize} cards.</p>
     <p>You play at most {roundConditions.maxPlayerHandSize} cards.</p>
     <p>You have {roundConditions.idealNDrawnCards} drawn cards.</p>

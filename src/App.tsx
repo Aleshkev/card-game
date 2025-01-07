@@ -5,6 +5,7 @@ import { diffById, shuffle, take } from "./utilities/functional";
 import { CardGridView } from "./components/CardGridView";
 import { produce } from "immer";
 import {
+  discardItem,
   discardPlayedCards,
   giveDealerCards,
   givePlayerCards,
@@ -59,29 +60,29 @@ function reduce(state: GameState, action: Action): GameState {
   return produce(state, (draft) => {
     switch (action.kind) {
       case "BeginRound": {
-        draft.status = "PlayerWaitsForCards"
+        draft.status = "PlayerWaitsForCards";
         return;
       }
       case "GiveFirstCards": {
         draft.round = givePlayerCards(
-          state.round,
-          state.roundConditions.idealNDrawnCards
+          draft.round,
+          draft.roundConditions.idealNDrawnCards
         );
         draft.status = "PlayerChoosesCards";
-        return
+        return;
       }
       case "SelectCard": {
-        if (state.status !== "PlayerChoosesCards") return;
+        if (draft.status !== "PlayerChoosesCards") return;
         if (
-          state.round.playerPlayedCards.length >=
-          state.roundConditions.maxPlayerHandSize
+          draft.round.playerPlayedCards.length >=
+          draft.roundConditions.maxPlayerHandSize
         )
           return;
         draft.round.playerPlayedCards.push(action.card);
         return;
       }
       case "UnselectCard": {
-        if (state.status !== "PlayerChoosesCards") return;
+        if (draft.status !== "PlayerChoosesCards") return;
         draft.round.playerPlayedCards = diffById(
           draft.round.playerPlayedCards,
           [action.card]
@@ -89,19 +90,19 @@ function reduce(state: GameState, action: Action): GameState {
         return;
       }
       case "SelectDealerCards": {
-        if (state.status !== "PlayerChoosesCards") return;
+        if (draft.status !== "PlayerChoosesCards") return;
         draft.round = giveDealerCards(
-          state.round,
-          state.roundConditions.maxDealerHandSize
+          draft.round,
+          draft.roundConditions.maxDealerHandSize
         );
         draft.status = "SelectingDealersCards";
         return;
       }
       case "ShowResult": {
-        if (state.status !== "SelectingDealersCards") return;
+        if (draft.status !== "SelectingDealersCards") return;
 
-        let playerBestHand = getBestHand(state.round.playerPlayedCards);
-        let dealerBestHand = getBestHand(state.round.dealerPlayedCards);
+        let playerBestHand = getBestHand(draft.round.playerPlayedCards);
+        let dealerBestHand = getBestHand(draft.round.dealerPlayedCards);
         let cmp = compareHands(playerBestHand, dealerBestHand);
         if (cmp >= 0) {
           // Player wins
@@ -120,7 +121,7 @@ function reduce(state: GameState, action: Action): GameState {
         draft.round = discardPlayedCards(draft.round);
         draft.round = givePlayerCards(
           draft.round,
-          state.roundConditions.idealNDrawnCards
+          draft.roundConditions.idealNDrawnCards
         );
         if (draft.round.dealerDeck.length === 0) {
           draft.status = "RoundEnded";
@@ -130,14 +131,38 @@ function reduce(state: GameState, action: Action): GameState {
         return;
       }
       case "UseItem": {
+        if (draft.status !== "PlayerChoosesCards") return;
         switch (action.item.kind) {
           case "MagnifyingGlass": {
             // TODO
-            // return reduce(state, { kind: "SelectDealerCards" });
+            // return reduce(draft, { kind: "SelectDealerCards" });
+            draft.round = giveDealerCards(
+              draft.round,
+              draft.roundConditions.maxDealerHandSize
+            );
+            draft.round = discardItem(draft.round, action.item);
             return;
           }
-          case "Beer": {
+          case "Apple": {
             ++draft.playerLives;
+            draft.round = discardItem(draft.round, action.item);
+            return;
+          }
+          case "TrashCan": {
+            for (
+              let discarded = 0;
+              discarded < draft.roundConditions.maxDealerHandSize;
+              ++discarded
+            ) {
+              if (draft.round.dealerPlayedCards.length > 0) {
+                draft.round.dealerPlayedCards.shift();
+              } else if (draft.round.dealerDeck.length > 0) {
+                draft.round.dealerDeck.shift();
+              } else {
+                break;
+              }
+            }
+            draft.round = discardItem(draft.round, action.item);
             return;
           }
         }
@@ -146,24 +171,24 @@ function reduce(state: GameState, action: Action): GameState {
         return;
       }
       case "NextRound": {
-        draft.round = newRound(state.roundConditions, state.round);
+        draft.round = newRound(draft.roundConditions, draft.round);
         draft.status = "BeginRound";
         return;
       }
       case "ShowDealersDeck": {
-        if (state.status !== "PlayerChoosesCards") return;
+        if (draft.status !== "PlayerChoosesCards") return;
         draft.status = "ShowDealersDeck";
         return;
       }
       case "ShowPlayerDeck": {
-        if (state.status !== "PlayerChoosesCards") return;
+        if (draft.status !== "PlayerChoosesCards") return;
         draft.status = "ShowPlayersDeck";
         return;
       }
       case "HideDeck": {
         if (
-          state.status !== "ShowDealersDeck" &&
-          state.status !== "ShowPlayersDeck"
+          draft.status !== "ShowDealersDeck" &&
+          draft.status !== "ShowPlayersDeck"
         )
           return;
         draft.status = "PlayerChoosesCards";
@@ -181,14 +206,13 @@ function App() {
     roundConditions: initialRoundMeta,
     round: newRound(initialRoundMeta),
   });
-  console.log(state);
 
   return (
     <div
-      className={`flex flex-row  items-stretch min-h-[100vh] overflow-hidden ${state.status === "Death" ? " bg-red-300" : ""}`}
+      className={`flex  items-stretch min-h-[100vh] overflow-hidden ${state.status === "Death" ? " bg-red-300" : ""}`}
     >
-      <div className="">
-        {state.status}
+      <div className="absolute">
+        {/* {state.status} */}
         <RoundMetaView
           roundConditions={state.roundConditions}
           playerLives={state.playerLives}
@@ -208,12 +232,7 @@ function App() {
             onPlayerSubmit={() => {
               dispatch({ kind: "SelectDealerCards" });
             }}
-            onUseItem={(item) => {
-              dispatch({ kind: "RemoveItem", item });
-              setTimeout(() => {
-                dispatch({ kind: "UseItem", item });
-              }, 500);
-            }}
+            onUseItem={(item) => dispatch({ kind: "UseItem", item })}
             onShowDealerDeck={() => dispatch({ kind: "ShowDealersDeck" })}
             onShowPlayerDeck={() => dispatch({ kind: "ShowPlayerDeck" })}
             showResult={

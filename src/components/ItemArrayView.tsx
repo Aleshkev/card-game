@@ -1,4 +1,3 @@
-
 import { Item } from "../types/item";
 import { CardPlaceholder } from "./CardPlaceholder";
 import { CardView } from "./CardView";
@@ -13,11 +12,12 @@ export function ItemArrayView({ items, onClickItem }: Props) {
   return (
     <div className="flex flex-row gap-2">
       {items.map((item) => (
-        <ItemView
-          item={item}
-          key={item.id}
-          onClick={() => onClickItem && onClickItem(item)}
-        />
+        <div key={item.id} className="-ml-[20px]">
+          <ItemView
+            item={item}
+            onClick={() => onClickItem && onClickItem(item)}
+          />
+        </div>
       ))}
     </div>
   );

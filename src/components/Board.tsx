@@ -137,7 +137,7 @@ export function Board({
         </div>
       </div>
       <div className=" relative">
-        {/* <div className=" absolute left-0 top-0">{playerItems}</div> */}
+        <div className=" absolute left-0 top-0 px-8">{playerItems}</div>
         <div className="  flex flex-col items-center">{playerDrawnCards}</div>
         <div className=" absolute right-0 top-0 px-8">{playerDeck}</div>
       </div>

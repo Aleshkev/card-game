@@ -14,7 +14,7 @@ export function splitAt<T>(xs: T[], n: number): [T[], T[]] {
 }
 
 /** Shuffle a list. */
-export function shuffle<T>(xs: T[]): T[] {
+export function shuffle<T>(xs: readonly T[]): T[] {
   let xs_ = xs.slice()
   for (let i = xs_.length; i > 0;) {
     let j = Math.random() * i | 0
