@@ -3,7 +3,13 @@ import { newId, shuffle } from "../utilities/functional"
 export type ItemId = number & { _: "ItemId" }
 export const newItemId = () => newId() as ItemId
 
-export const itemKinds = ["MagnifyingGlass", "TrashCan", "Apple"] as const
+export const itemKinds = [
+  "MagnifyingGlass",
+  "TrashCan",
+  "Apple",
+  "Chain",
+  "Dove"
+] as const
 export type Item = {
   kind: typeof itemKinds[number]
   id: ItemId

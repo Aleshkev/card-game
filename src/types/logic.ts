@@ -21,6 +21,7 @@ export function newRound(meta: RoundConditions, previousRound?: RoundState): Rou
     playerPlayedCards: [],
     playerDeck,
     playerItems: [...(previousRound ? previousRound.playerItems : []), ...randomItems(meta.items)],
+    discardedCards: []
   }
 }
 
@@ -31,8 +32,10 @@ export function givePlayerCards(round: RoundState, targetNCards: number): RoundS
   })
 }
 
-export function giveDealerCards(round: RoundState, targetNCards: number): RoundState {
+export function giveDealerCards(round: RoundState, conditions: RoundConditions): RoundState {
   return produce(round, (draft) => {
+    const targetNCards = round.overrideDealerMaxHandSize ?? conditions.maxDealerHandSize 
+    // const targetNCards = conditions.maxDealerHandSize
     let n = Math.max(0, targetNCards - round.dealerPlayedCards.length);
     [draft.dealerPlayedCards, draft.dealerDeck] = transferCards(draft.dealerPlayedCards, draft.dealerDeck, n)
   })
@@ -40,8 +43,9 @@ export function giveDealerCards(round: RoundState, targetNCards: number): RoundS
 
 export function discardPlayedCards(round: RoundState): RoundState {
   return produce(round, (draft) => {
-    draft.dealerPlayedCards = [];
+    draft.discardedCards = [...draft.dealerPlayedCards, ...draft.playerPlayedCards, ...draft.discardedCards]
     draft.playerDrawnCards = diffById(draft.playerDrawnCards, draft.playerPlayedCards);
+    draft.dealerPlayedCards = [];
     draft.playerPlayedCards = [];
   })
 }

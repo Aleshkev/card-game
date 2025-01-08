@@ -75,7 +75,8 @@ function reduce(state: GameState, action: Action): GameState {
         if (draft.status !== "PlayerChoosesCards") return;
         if (
           draft.round.playerPlayedCards.length >=
-          draft.roundConditions.maxPlayerHandSize
+          (draft.round.overridePlayerMaxHandSize ??
+            draft.roundConditions.maxPlayerHandSize)
         )
           return;
         draft.round.playerPlayedCards.push(action.card);
@@ -91,10 +92,7 @@ function reduce(state: GameState, action: Action): GameState {
       }
       case "SelectDealerCards": {
         if (draft.status !== "PlayerChoosesCards") return;
-        draft.round = giveDealerCards(
-          draft.round,
-          draft.roundConditions.maxDealerHandSize
-        );
+        draft.round = giveDealerCards(draft.round, draft.roundConditions);
         draft.status = "SelectingDealersCards";
         return;
       }
@@ -119,11 +117,13 @@ function reduce(state: GameState, action: Action): GameState {
       }
       case "ClearUsedCards": {
         draft.round = discardPlayedCards(draft.round);
+        draft.round.overrideDealerMaxHandSize = undefined;
+        draft.round.overridePlayerMaxHandSize = undefined;
         draft.round = givePlayerCards(
           draft.round,
           draft.roundConditions.idealNDrawnCards
         );
-        if (draft.round.dealerDeck.length === 0) {
+        if (draft.round.dealerDeck.length === 0 || draft.round.playerDeck.length === 0) {
           draft.status = "RoundEnded";
         } else {
           draft.status = "PlayerChoosesCards";
@@ -136,10 +136,7 @@ function reduce(state: GameState, action: Action): GameState {
           case "MagnifyingGlass": {
             // TODO
             // return reduce(draft, { kind: "SelectDealerCards" });
-            draft.round = giveDealerCards(
-              draft.round,
-              draft.roundConditions.maxDealerHandSize
-            );
+            draft.round = giveDealerCards(draft.round, draft.roundConditions);
             draft.round = discardItem(draft.round, action.item);
             return;
           }
@@ -155,9 +152,13 @@ function reduce(state: GameState, action: Action): GameState {
               ++discarded
             ) {
               if (draft.round.dealerPlayedCards.length > 0) {
-                draft.round.dealerPlayedCards.shift();
+                draft.round.discardedCards.push(
+                  draft.round.dealerPlayedCards.shift()!
+                );
               } else if (draft.round.dealerDeck.length > 0) {
-                draft.round.dealerDeck.shift();
+                draft.round.discardedCards.push(
+                  draft.round.dealerDeck.shift()!
+                );
               } else {
                 break;
               }
@@ -165,6 +166,24 @@ function reduce(state: GameState, action: Action): GameState {
             draft.round = discardItem(draft.round, action.item);
             return;
           }
+          case "Chain": {
+            draft.round.overrideDealerMaxHandSize = 1;
+            while (draft.round.dealerPlayedCards.length > 1) {
+              draft.round.dealerDeck.unshift(
+                draft.round.dealerPlayedCards.pop()!
+              );
+            }
+            draft.round = discardItem(draft.round, action.item);
+            return;
+          }
+          case "Dove": {
+            draft.round.overridePlayerMaxHandSize = 6;
+            draft.round = discardItem(draft.round, action.item);
+            return;
+          }
+
+          default:
+            return action.item.kind;
         }
       }
       case "RemoveItem": {
@@ -206,6 +225,8 @@ function App() {
     roundConditions: initialRoundMeta,
     round: newRound(initialRoundMeta),
   });
+
+  console.log(state.round);
 
   return (
     <div
@@ -270,10 +291,16 @@ function App() {
           </Popup>
         )}
         {state.status === "PlayerWaitsForCards" && (
-          <ClickScreen onClick={() => dispatch({ kind: "GiveFirstCards" })} />
+          <ClickScreen
+            onClick={() => dispatch({ kind: "GiveFirstCards" })}
+            autoClickTimeout={0.7}
+          />
         )}
         {state.status === "SelectingDealersCards" && (
-          <ClickScreen onClick={() => dispatch({ kind: "ShowResult" })} />
+          <ClickScreen
+            onClick={() => dispatch({ kind: "ShowResult" })}
+            autoClickTimeout={0.7}
+          />
         )}
         {state.status === "ShowingHandResult" && (
           <ClickScreen onClick={() => dispatch({ kind: "ClearUsedCards" })} />

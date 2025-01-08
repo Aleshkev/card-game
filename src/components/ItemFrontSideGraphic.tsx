@@ -7,11 +7,16 @@ export type Props = {
 function itemInfo(item: Item): [string, string, string] {
   switch (item.kind) {
     case "MagnifyingGlass":
-      return ["Magnif. Glass", "🔎", "Show the dealer's next play."];
+      return ["Magnif. Glass", "🔎", "Shows the dealer's next play."];
     case "TrashCan":
-      return ["Trash can", "🗑️", "Discard dealer's next play."];
+      return ["Trash can", "🗑️", "Discards dealer's next play."];
     case "Apple":
-      return ["Apple", "🍎", "Restore one life."]
+      return ["Apple", "🍎", "Restores one life."]
+    case "Chain":
+      return ["Handcuffs", "⛓️", "Makes dealer play only one card this turn."]
+      
+    case "Dove":
+      return ["Dove", "🕊️", "Lets you play 6 cards this turn."]
   }
 }
 
@@ -19,7 +24,7 @@ export function ItemFrontSideGraphic({ item }: Props) {
   const [label, icon, description] = itemInfo(item);
 
   return (
-    <div className="w-[160px] h-[220px]   bg-indigo-500 text-white p-2 font-sans rounded select-none flex flex-col gap-2">
+    <div className="w-[160px] h-[220px]   bg-indigo-500 text-yellow-50 p-2 font-sans rounded select-none flex flex-col gap-2">
       <div className="uppercase font-bold text-sm rounded bg-indigo-800 px-2 py-1">
         {label}
       </div>

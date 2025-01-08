@@ -43,7 +43,7 @@ export function CardArrayView({
                 <div key={card.id} className={`${isFan ? "-ml-[100px]" : ""}`}>
                   <CardView
                     card={card}
-                    onClick={() => onClickCard && onClickCard(card)}
+                    onClick={onClickCard && (() => onClickCard(card))}
                     highlighted={highlighted?.includes(card.id)}
                     rotate={isFan ? 3 * (i - (n - 1) / 2) : undefined}
                   />

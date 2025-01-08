@@ -8,6 +8,7 @@ import { CardDeckView } from "./CardDeckView";
 import { ItemArrayView } from "./ItemArrayView";
 import { Button } from "./Button";
 import { AnimatePresence, motion } from "motion/react";
+import { CardView } from "./CardView";
 
 export type Props = {
   roundConditions: RoundConditions;
@@ -51,7 +52,10 @@ export function Board({
   const dealerPlayedCards = (
     <CardArrayView
       cards={roundState.dealerPlayedCards}
-      placeholders={roundConditions.maxDealerHandSize}
+      placeholders={
+        roundState.overrideDealerMaxHandSize ??
+        roundConditions.maxDealerHandSize
+      }
       highlighted={
         dealerBestHand ? dealerBestHand.cards.map(({ id }) => id) : undefined
       }
@@ -66,7 +70,10 @@ export function Board({
   const playerPlayedCards = (
     <CardArrayView
       cards={roundState.playerPlayedCards}
-      placeholders={roundConditions.maxPlayerHandSize}
+      placeholders={
+        roundState.overridePlayerMaxHandSize ??
+        roundConditions.maxPlayerHandSize
+      }
       onClickCard={onPlayerUnselectCard}
       highlighted={
         playerBestHand ? playerBestHand.cards.map(({ id }) => id) : undefined
@@ -126,7 +133,7 @@ export function Board({
                 <motion.div
                   exit={{ scale: 0.5, opacity: 0.5 }}
                   transition={{ duration: 0.1 }}
-                  style={{translateX: "-50%", translateY: "-120%"}}
+                  style={{ translateX: "-50%", translateY: "-120%" }}
                   className="absolute"
                 >
                   <Button onClick={onPlayerSubmit} text={"play"} />
@@ -140,6 +147,11 @@ export function Board({
         <div className=" absolute left-0 top-0 px-8">{playerItems}</div>
         <div className="  flex flex-col items-center">{playerDrawnCards}</div>
         <div className=" absolute right-0 top-0 px-8">{playerDeck}</div>
+      </div>
+      <div className="absolute top-[120vh] left-[50%] translate-x-[-50%]">
+        {roundState.discardedCards.map((card) => (
+          <CardView key={card.id} card={card} />
+        ))}
       </div>
     </div>
   );

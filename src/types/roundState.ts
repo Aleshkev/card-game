@@ -8,4 +8,7 @@ export type RoundState = {
   playerItems: Item[]
   dealerPlayedCards: Card[]
   dealerDeck: Card[]
+  discardedCards: Card[]
+  overrideDealerMaxHandSize?: number
+  overridePlayerMaxHandSize?: number
 }
