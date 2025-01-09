@@ -125,7 +125,9 @@ function reduce(state: GameState, action: Action): GameState {
         );
         if (
           draft.round.dealerDeck.length === 0 ||
-          draft.round.playerDeck.length === 0
+          draft.round.playerDrawnCards.length +
+            draft.round.playerDeck.length ===
+            0
         ) {
           draft.status = "RoundEnded";
         } else {

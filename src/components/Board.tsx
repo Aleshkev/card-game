@@ -147,7 +147,7 @@ export function Board({
           <div className=" col-start-1 row-start-1 flex justify-center">
             {playerPlayedCards}
           </div>
-          <div className=" col-start-1 row-start-1 flex justify-center items-center z-10 pointer-events-none">
+          <div className=" col-start-1 row-start-1 flex justify-center items-center pointer-events-none">
             <AnimatePresence>
               {playerBestHand && <HandView hand={playerBestHand} />}
             </AnimatePresence>
