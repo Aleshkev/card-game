@@ -9,6 +9,7 @@ import { ItemArrayView } from "./ItemArrayView";
 import { Button } from "./Button";
 import { AnimatePresence, motion } from "motion/react";
 import { CardView } from "./CardView";
+import { HandView } from "./HandView";
 
 export type Props = {
   roundConditions: RoundConditions;
@@ -105,43 +106,50 @@ export function Board({
   return (
     <div className=" h-full  justify-evenly flex flex-col gap-2 items-stretch">
       <div className="relative">
-        <div className="  mx-auto flex flex-col gap-2 items-center justify-center">
-          {dealerPlayedCards}
-          {(dealerBestHand && <div>{handToString(dealerBestHand)}</div>) || (
-            <div>&nbsp;</div>
-          )}
+        <div className="  grid">
+          <div className=" col-start-1 row-start-1 flex justify-center">
+            {dealerPlayedCards}
+          </div>
+          <div className="col-start-1 row-start-1 flex justify-center items-center">
+            <AnimatePresence>
+              {dealerBestHand && <HandView hand={dealerBestHand} />}
+            </AnimatePresence>
+          </div>
         </div>
         <div className="absolute right-0 top-0 px-8">{dealerDeck}</div>
       </div>
-      <div className="flex  flex-col items-center text-2xl">
-        {(showResult && result && (
-          <div>
+      <div className="grid h-5">
+        <div className=" col-start-1 row-start-1 flex justify-center">
+          <AnimatePresence>
+            {roundState.playerPlayedCards.length >= 1 && allowSubmit && (
+              <motion.div
+                exit={{ scale: 0.5, opacity: 0.5 }}
+                transition={{ duration: 0.1 }}
+                className=""
+              >
+                <Button onClick={onPlayerSubmit} text={"play"} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        {showResult && result && (
+          <div className="col-start-1 row-start-1 flex items-center justify-center text-3xl font-bold">
             {result > 0
               ? "You win."
               : result === 0
                 ? "Draw."
                 : "You lose a life."}
           </div>
-        )) || <div>&nbsp;</div>}
+        )}
       </div>
       <div>
-        <div className="flex flex-col justify-center gap-2 items-center">
-          {playerPlayedCards}
-          {(playerBestHand && <div>{handToString(playerBestHand)}</div>) || (
-            <div>&nbsp;</div>
-          )}
-          <div className="relative">
+        <div className="grid">
+          <div className=" col-start-1 row-start-1 flex justify-center">
+            {playerPlayedCards}
+          </div>
+          <div className=" col-start-1 row-start-1 flex justify-center items-center z-10 pointer-events-none">
             <AnimatePresence>
-              {roundState.playerPlayedCards.length >= 1 && allowSubmit && (
-                <motion.div
-                  exit={{ scale: 0.5, opacity: 0.5 }}
-                  transition={{ duration: 0.1 }}
-                  style={{ translateX: "-50%", translateY: "-120%" }}
-                  className="absolute"
-                >
-                  <Button onClick={onPlayerSubmit} text={"play"} />
-                </motion.div>
-              )}
+              {playerBestHand && <HandView hand={playerBestHand} />}
             </AnimatePresence>
           </div>
         </div>
