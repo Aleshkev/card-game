@@ -13,10 +13,10 @@ function itemInfo(item: Item): [string, string, string] {
     case "Apple":
       return ["Apple", "🍎", "Restores one life."]
     case "Chain":
-      return ["Handcuffs", "⛓️", "Makes dealer play only one card this turn."]
+      return ["Chain", "⛓️", "Makes dealer play only one card this turn."]
       
     case "Dove":
-      return ["Dove", "🕊️", "Lets you play 6 cards this turn."]
+      return ["Dove", "🕊️", "Lets you play up to 6 cards this turn."]
   }
 }
 

@@ -51,9 +51,10 @@ export function Board({
 
   const dealerPlayedCards = (
     <CardArrayView
+      layoutId="dealerPlayedCards"
       cards={roundState.dealerPlayedCards}
       placeholders={
-        roundState.overrideDealerMaxHandSize ??
+        roundState.turn.overrideDealerMaxHandSize ??
         roundConditions.maxDealerHandSize
       }
       highlighted={
@@ -69,9 +70,10 @@ export function Board({
   );
   const playerPlayedCards = (
     <CardArrayView
+      layoutId="playerPlayedCards"
       cards={roundState.playerPlayedCards}
       placeholders={
-        roundState.overridePlayerMaxHandSize ??
+        roundState.turn.overridePlayerMaxHandSize ??
         roundConditions.maxPlayerHandSize
       }
       onClickCard={onPlayerUnselectCard}
@@ -85,6 +87,7 @@ export function Board({
   );
   const playerDrawnCards = (
     <CardArrayView
+      layoutId="playerDrawnCards"
       cards={roundState.playerDrawnCards.filter(
         (x) => roundState.playerPlayedCards.indexOf(x) === -1
       )}
@@ -100,7 +103,7 @@ export function Board({
   );
 
   return (
-    <div className=" h-full justify-center flex flex-col gap-2 items-stretch p-2">
+    <div className=" h-full  justify-evenly flex flex-col gap-2 items-stretch">
       <div className="relative">
         <div className="  mx-auto flex flex-col gap-2 items-center justify-center">
           {dealerPlayedCards}

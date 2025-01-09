@@ -21,6 +21,7 @@ import {
   randomRoundConditions,
   RoundConditions,
 } from "./types/roundConditions";
+import { AnimatePresence, motion } from "motion/react";
 
 type GameState = {
   status: Status;
@@ -75,7 +76,7 @@ function reduce(state: GameState, action: Action): GameState {
         if (draft.status !== "PlayerChoosesCards") return;
         if (
           draft.round.playerPlayedCards.length >=
-          (draft.round.overridePlayerMaxHandSize ??
+          (draft.round.turn.overridePlayerMaxHandSize ??
             draft.roundConditions.maxPlayerHandSize)
         )
           return;
@@ -117,13 +118,15 @@ function reduce(state: GameState, action: Action): GameState {
       }
       case "ClearUsedCards": {
         draft.round = discardPlayedCards(draft.round);
-        draft.round.overrideDealerMaxHandSize = undefined;
-        draft.round.overridePlayerMaxHandSize = undefined;
+        draft.round.turn = {};
         draft.round = givePlayerCards(
           draft.round,
           draft.roundConditions.idealNDrawnCards
         );
-        if (draft.round.dealerDeck.length === 0 || draft.round.playerDeck.length === 0) {
+        if (
+          draft.round.dealerDeck.length === 0 ||
+          draft.round.playerDeck.length === 0
+        ) {
           draft.status = "RoundEnded";
         } else {
           draft.status = "PlayerChoosesCards";
@@ -167,7 +170,7 @@ function reduce(state: GameState, action: Action): GameState {
             return;
           }
           case "Chain": {
-            draft.round.overrideDealerMaxHandSize = 1;
+            draft.round.turn.overrideDealerMaxHandSize = 1;
             while (draft.round.dealerPlayedCards.length > 1) {
               draft.round.dealerDeck.unshift(
                 draft.round.dealerPlayedCards.pop()!
@@ -177,7 +180,7 @@ function reduce(state: GameState, action: Action): GameState {
             return;
           }
           case "Dove": {
-            draft.round.overridePlayerMaxHandSize = 6;
+            draft.round.turn.overridePlayerMaxHandSize = 6;
             draft.round = discardItem(draft.round, action.item);
             return;
           }
@@ -270,26 +273,20 @@ function App() {
             }
           />
         </div>
-        {(state.status === "ShowDealersDeck" ||
-          state.status === "ShowPlayersDeck") && (
-          <Popup onDismiss={() => dispatch({ kind: "HideDeck" })}>
-            <CardGridView
-              cards={
-                state.status === "ShowDealersDeck"
-                  ? state.round.dealerDeck
-                  : state.round.playerDeck
-              }
-            />
-          </Popup>
-        )}
-        {state.status === "BeginRound" && (
-          <Popup onDismiss={() => dispatch({ kind: "BeginRound" })}>
-            <p>Dealer's cards:</p>
-            <CardGridView cards={state.round.dealerDeck} />
-            <p>Your cards:</p>
-            <CardGridView cards={state.round.playerDeck} />
-          </Popup>
-        )}
+
+        <AnimatePresence>
+          {state.status === "BeginRound" && (
+            <Popup
+              // condition={}
+              onDismiss={() => dispatch({ kind: "BeginRound" })}
+            >
+              <p>Dealer's cards:</p>
+              <CardGridView cards={state.round.dealerDeck} />
+              <p>Your cards:</p>
+              <CardGridView cards={state.round.playerDeck} />
+            </Popup>
+          )}
+        </AnimatePresence>
         {state.status === "PlayerWaitsForCards" && (
           <ClickScreen
             onClick={() => dispatch({ kind: "GiveFirstCards" })}
@@ -302,6 +299,20 @@ function App() {
             autoClickTimeout={0.7}
           />
         )}
+        <AnimatePresence>
+          {(state.status === "ShowDealersDeck" ||
+            state.status === "ShowPlayersDeck") && (
+            <Popup onDismiss={() => dispatch({ kind: "HideDeck" })}>
+              <CardGridView
+                cards={
+                  state.status === "ShowDealersDeck"
+                    ? state.round.dealerDeck
+                    : state.round.playerDeck
+                }
+              />
+            </Popup>
+          )}
+        </AnimatePresence>
         {state.status === "ShowingHandResult" && (
           <ClickScreen onClick={() => dispatch({ kind: "ClearUsedCards" })} />
         )}
@@ -311,11 +322,13 @@ function App() {
             label="No cards left. New round will begin. Click to continue."
           />
         )}
-        {state.status === "Death" && (
-          <Popup onDismiss={() => {}}>
-            <p>You are dead.</p>
-          </Popup>
-        )}
+        <AnimatePresence>
+          {state.status === "Death" && (
+            <Popup onDismiss={() => {}}>
+              <p>You are dead.</p>
+            </Popup>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

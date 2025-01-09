@@ -9,6 +9,10 @@ export const itemKinds = [
   "Apple",
   "Chain",
   "Dove"
+  // TODO:
+  // - see one of future dealer's plays?
+  // - sth to do with changing values/suits
+  // - make the round count in inverse (you lose a life if you win)
 ] as const
 export type Item = {
   kind: typeof itemKinds[number]
